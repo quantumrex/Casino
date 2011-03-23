@@ -1,0 +1,5 @@
+name: CasinoManager
+
+main: com.nhksos.quantumrex.Casino
+
+version: 0.1
