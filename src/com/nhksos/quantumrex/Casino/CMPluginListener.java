@@ -1,6 +1,8 @@
 package com.nhksos.quantumrex.Casino;
 
 import org.bukkit.event.Event;
+import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.event.server.PluginEvent;
 import org.bukkit.event.server.ServerListener;
 
@@ -31,7 +33,7 @@ public class CMPluginListener extends ServerListener{
      * 
      */
     @Override
-    public void onPluginEnable(PluginEvent event) {
+    public void onPluginEnable(PluginEnableEvent event) {
     	//Register with iConomy
     	if(event.getPlugin().getDescription().getName() == "iConomy"){
         	iConomy dependency;
@@ -61,7 +63,7 @@ public class CMPluginListener extends ServerListener{
     }
     
     @Override
-    public void onPluginDisable(PluginEvent event){
+    public void onPluginDisable(PluginDisableEvent event){
     	//Disable Casino if iConomy dies
     	if(event.getPlugin().getDescription().getName() == "iConomy"){
     		System.out.println("[CasinoManager] iConomy disabled. Shutting down...");

@@ -68,11 +68,13 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 	public void onEnable() {
         pluginlistener = new CMPluginListener(this);
         plistener = new CMPlayerListener(this);
-        
+        casinos = new HashMap<String, Casino>();
+
         //Command Registration
         getCommand("makecasino").setExecutor(this);
         getCommand("makemachine").setExecutor(this);
-        
+        getCommand("test").setExecutor(this);
+        getCommand("destroycasino").setExecutor(this);
 
         // Event Registration
         getServer().getPluginManager().registerEvent(Event.Type.PLAYER_INTERACT, plistener, Priority.Normal, this);
@@ -84,7 +86,8 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(isEnabled()){
-			if (command.getName() == "makecasino"){
+			if (command == getCommand("makecasino")){
+				System.out.println("[CasinoManager] makecasino received!");
 				if (sender instanceof Player){
 					Player person = (Player) sender;
 					if (plistener.setEnabled(person)){
@@ -100,7 +103,8 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 				}
 				return true;
 			}
-			else if(command.getName() == "makemachine"){
+			else if(command == getCommand("makemachine")){
+				System.out.println("[CasinoManager] makemachine received!");
 				if (sender instanceof Player){
 					Player person = (Player) sender;
 					if (plistener.setEnabled(person)){
@@ -120,7 +124,11 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 				}
 				return true;
 			}
-			else if (command.getName() == "destroycasino"){
+			else if (command == getCommand("test")){
+				// TODO destroy game
+				return true;
+			}
+			else if (command == getCommand("destroycasino")){
 				// TODO destroy game
 				return true;
 			}

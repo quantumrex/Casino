@@ -5,10 +5,9 @@ website: http://github.com/quantumrex/Casino
 author: quantumrex
 
 description: >
-             Provides an interface for in game management of a Casino consisting of
-             basic mini-games and other such attractions.
-
-depends: iConomy
+             Provides an interface for in game management of a 
+             Casino consisting of basic mini-games and other 
+             such attractions
 
 commands:
   makecasino:
@@ -22,8 +21,8 @@ commands:
   test:
     description: Tests all machines in the casino for visual functionality
     usage: /<command> 
-    aliases: [mcasino,mc]
+    aliases: [t]
   destroycasino:
     description: Tests all machines in the casino for visual functionality
     usage: /<command> 
-    aliases: [mcasino,mc]
+    aliases: [dcasino,dc]

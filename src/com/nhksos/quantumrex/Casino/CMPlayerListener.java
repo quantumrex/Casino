@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerListener;
 
@@ -17,7 +18,7 @@ import com.nhksos.quantumrex.Game.Game;
  *
  */
 
-enum JobType {CASINO_CREATE, GAME_CREATE};
+enum JobType {CASINO_CREATE, GAME_CREATE, READY};
 
 public class CMPlayerListener extends PlayerListener {
 	CasinoManager plugin;
@@ -32,14 +33,16 @@ public class CMPlayerListener extends PlayerListener {
 	
 	
 	public CMPlayerListener(CasinoManager parent){
+		games = new HashMap<Block, Game>();
 		plugin = parent;
 		enabled = false;
 		man = null;
-		current = null;
+		current = JobType.READY;
 	}
 	
 	public boolean setEnabled(Player trigger){
 		if(!enabled){
+			System.out.println("Listener enabled...");
 			enabled = true;
 			man = trigger;
 			return true;
@@ -49,45 +52,63 @@ public class CMPlayerListener extends PlayerListener {
 	
 	public void setDisabled(){
 		if(enabled){
-			current = null;
+			System.out.println("Listener disabled...");
+			current = JobType.READY;
 			enabled = false;
 			man = null;
 		}
 	}
 	
 	public void onPlayerInteract(PlayerInteractEvent event){
-		switch (current){
-		case CASINO_CREATE:
-			if(enabled){
-				if(event.getPlayer() == man){
-					house.defineCasino(event.getClickedBlock());
+		if(event.getAction() != Action.LEFT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_AIR){
+			System.out.println(event.getPlayer().getName() + " touched a block!\n" +
+					"Touch method was :" + event.getAction().toString() + "\n" + 
+					"Block type : " + event.getClickedBlock().getType().toString());
+			switch (current){
+			case CASINO_CREATE:
+				if(enabled){
+					if(event.getPlayer() == man){
+						if(house.defineCasino(event.getClickedBlock()))
+							setDisabled();
+					}
+				}
+				break;
+			case GAME_CREATE:
+				if(enabled){
+					if(event.getPlayer() == man){
+						if(machine.buildInteract(event.getClickedBlock())){
+							games.put(event.getClickedBlock(), machine);
+							setDisabled();
+						}
+					}
+				}
+				break;
+			default:
+				if(!games.isEmpty()){
+					if(games.containsKey(event.getClickedBlock())){
+						System.out.println("Activating game!");
+						Game game = games.get(event.getClickedBlock());
+						if (game != null)
+							game.enable(event.getPlayer());
+					}
 				}
 			}
-			break;
-		case GAME_CREATE:
-			if(enabled){
-				if(event.getPlayer() == man){
-					machine.buildInteract(event.getClickedBlock());
-				}
-			}
-			break;
-		default:
-			Game game = games.get(event.getClickedBlock());
-			if (game != null)
-				game.enable(event.getPlayer());
 		}
+		return;
 	}
 
 	public boolean setJob(JobType job, Casino casino) {
-			current = job;
-			return true;
+		System.out.println("Giving job: " + job.toString());
+		current = job;
+		house  = casino;
+		return true;
 	}
 
 	public boolean setJob(JobType job, Casino casino, Game client) {
+		System.out.println("Giving job: " + job.toString());
 		current = job;
 		house = casino;
 		machine = client;
-		
 		return true;
 	}
 	

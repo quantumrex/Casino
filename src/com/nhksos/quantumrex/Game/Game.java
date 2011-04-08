@@ -36,7 +36,7 @@ public abstract class Game {
 	
 	public abstract boolean enable(Player patron);
 	
-	public abstract void buildInteract(Block block);
+	public abstract boolean buildInteract(Block block);
 	
 	public abstract void testGame();
 	
