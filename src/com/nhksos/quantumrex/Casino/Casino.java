@@ -21,6 +21,7 @@ public class Casino {
 		database = data;
 		owner = person;
 		id = i;
+		name = "";
 		corner1 = corner3 = null;
 	}
 	
@@ -52,14 +53,24 @@ public class Casino {
 			corner1 = clicked;
 			owner.sendMessage("Corner 1 defined. One left!");
 		}
-		else if(clicked != corner1){
+		else if(!clicked.equals(corner1) && corner3 == null){
+			BlockVector cornertemp = corner1;
 			corner3 = BlockVector.getMaximum(clicked, corner1).toBlockVector();
 			corner1 = BlockVector.getMinimum(corner1, clicked).toBlockVector();
 			corner3.setY(0);
 			corner1.setY(0);
 			
-			owner.sendMessage("Casino boundaries defined!");
-			owner.sendMessage("Total area: " + getArea() + "Square Meters.");
+			int area = getArea();
+			if(area > 0){
+				owner.sendMessage("Casino boundaries defined!");
+				owner.sendMessage("  Total area: " + area + " Square Meters.");
+			}
+			else{
+				owner.sendMessage("Casino area is 0! This means your blocks are in a line. \n" +
+								  "  Use opposite corners. Take up space!");
+				corner1 = cornertemp;
+				corner3 = null;
+			}
 		}
 		return complete();
 	}
@@ -79,12 +90,19 @@ public class Casino {
 
 	public boolean setName(String n) {
 		name = n;
-		owner.sendMessage("You Casino's name was set to: " + name + "!");
+		owner.sendMessage("You Casino's name was set to: \"" + name + "\"");
 		
 		return complete();
 	}
 
 	private boolean complete() {
-		return (corner1 != null && corner3 != null && name != "");
+		if (corner1 != null && corner3 != null && name != ""){
+			System.out.println("Casino finished: " + owner.getName() + " has a new casino. \n" +
+							   "  Name:     " + name + "\n" +
+							   "  Location: " + corner1.toString() + "\n" + 
+							   "  Area:     " + getArea() + " Square Blocks");
+			return true;
+		}
+		return false;
 	}
 }

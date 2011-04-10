@@ -39,7 +39,14 @@ public class DataManager {
 		Game.init(this);
 		
 		config = new ConfigWriter(this);
+		
+		activators = new HashMap<BlockVector, ID>();
+		owners = new HashMap<String, ID>();
+		casinos = new HashMap<ID, Casino>();
+		games = new HashMap<ID, Game>();
+		
 		//load();
+		
 		jobs = new HashMap<String, Job>();
 		running = new HashMap<String, ID>();
 		bets = new HashMap<ID, Bet>();

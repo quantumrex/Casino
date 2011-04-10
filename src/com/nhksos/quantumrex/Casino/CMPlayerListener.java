@@ -50,13 +50,13 @@ public class CMPlayerListener extends PlayerListener {
 			String message = event.getMessage().toLowerCase();
 			switch(temp.job){
 			case CASINO_CREATE:
-				if(message.matches("^name .*")){
+				if(message.matches("^name[ ].*")){
 					event.setCancelled(true);
 					database.nameCasino(temp.using, event.getMessage().substring(5));
 				}
 				break;
 			case GAME_CREATE:
-				if(message.matches("^type .*")){
+				if(message.matches("^type[ ].*")){
 					event.setCancelled(true);
 					//TODO Create a Game type selection function.
 				}
