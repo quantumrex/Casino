@@ -20,27 +20,19 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
-enum GameType{SLOT_MACHINE, ROULETTE_WHEEL, SHELL_GAME, BLACKJACK, TARGET_GAME};
-
 /**
  * CasinoManager Plugin
  * @author quantumrex
  *
  */
 public class CasinoManager extends JavaPlugin implements Plugin {
-	//Basic Data Strings
-	//=======================================================
-	private final String ConfigFile = "config.yml";
-	private final String DefaultDirectory = "CasinoManager";
-	private final String CurrentRelease = "0.01";
 	
 	//Internal Components
 	//=======================================================
-	public static PluginDescriptionFile description;
+	private DataManager database;
 	private CMPluginListener pluginlistener = null;
 	private CMBlockListener blistener = null;
 	private CMPlayerListener plistener = null;
-	private HashMap<String, Casino> casinos;
 	
 	//External Dependencies
 	//=======================================================
@@ -66,17 +58,13 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 	 */
 	@Override
 	public void onEnable() {
+		database = new DataManager(this);
         pluginlistener = new CMPluginListener(this);
-        plistener = new CMPlayerListener(this);
-        casinos = new HashMap<String, Casino>();
-
-        //Command Registration
-        getCommand("makecasino").setExecutor(this);
-        getCommand("makemachine").setExecutor(this);
-        getCommand("test").setExecutor(this);
-        getCommand("destroycasino").setExecutor(this);
+        
+        plistener = new CMPlayerListener(database);
 
         // Event Registration
+        getServer().getPluginManager().registerEvent(Event.Type.PLAYER_CHAT, plistener, Priority.Normal, this);
         getServer().getPluginManager().registerEvent(Event.Type.PLAYER_INTERACT, plistener, Priority.Normal, this);
         getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_ENABLE, pluginlistener, Priority.Monitor, this);
         getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_DISABLE, pluginlistener, Priority.Monitor, this);
@@ -86,52 +74,25 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(isEnabled()){
-			if (command == getCommand("makecasino")){
-				System.out.println("[CasinoManager] makecasino received!");
-				if (sender instanceof Player){
-					Player person = (Player) sender;
-					if (plistener.setEnabled(person)){
-						Casino casino = new Casino(this, person);
-						casinos.put(person.getName(), casino);
-						if(!plistener.setJob(JobType.CASINO_CREATE, casino)){
-							person.chat("Something bad just happened...");
-							return false;
-						}
-					}
-					else
-						person.chat("The casino manager is currently in use, try again later.");
+			if(sender instanceof Player){
+				Player player = (Player) sender;
+				if (command == getCommand("makecasino")){
+					database.registerJob(player, JobType.CASINO_CREATE);
 				}
-				return true;
-			}
-			else if(command == getCommand("makemachine")){
-				System.out.println("[CasinoManager] makemachine received!");
-				if (sender instanceof Player){
-					Player person = (Player) sender;
-					if (plistener.setEnabled(person)){
-						Casino casino = casinos.get(person.getName());
-						if (casino != null){
-							Game tomake = casino.createGame(GameType.SLOT_MACHINE);
-							if (!plistener.setJob(JobType.GAME_CREATE, casino, tomake)){
-								person.chat("Something bad just happened...");
-								return false;
-							}
-						}
-						else
-							person.chat("You don't seem to have a casino. Use /makecasino.");		
-					}	
-					else
-						person.chat("The casino manager is currently in use, try again later.");
+				else if(command == getCommand("makemachine")){
+					database.registerJob(player, JobType.GAME_CREATE);
 				}
-				return true;
+				else if (command == getCommand("testcasino")){
+					// TODO test casino
+					database.testCasino(player.getName());
+				}
+				else if (command == getCommand("destroycasino")){
+					database.destroyCasino(player.getName());
+				}
 			}
-			else if (command == getCommand("test")){
-				// TODO destroy game
-				return true;
-			}
-			else if (command == getCommand("destroycasino")){
-				// TODO destroy game
-				return true;
-			}
+			else
+				System.out.println("[CasinoManager] You can't do that from here!");
+			return true;
 		}
 		else
 			// TODO player chat

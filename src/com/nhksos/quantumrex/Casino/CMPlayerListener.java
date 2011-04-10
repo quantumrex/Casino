@@ -8,8 +8,10 @@ import java.util.HashMap;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerListener;
+import org.bukkit.util.BlockVector;
 
 import com.nhksos.quantumrex.Game.Game;
 
@@ -18,101 +20,52 @@ import com.nhksos.quantumrex.Game.Game;
  *
  */
 
-enum JobType {CASINO_CREATE, GAME_CREATE, READY};
-
 public class CMPlayerListener extends PlayerListener {
-	CasinoManager plugin;
-	HashMap<Block, Game> games;
+	DataManager database;
 	
-	boolean enabled;
-	JobType current;
-	
-	Casino house;
-	Game machine;
-	Player man;
-	
-	
-	public CMPlayerListener(CasinoManager parent){
-		games = new HashMap<Block, Game>();
-		plugin = parent;
-		enabled = false;
-		man = null;
-		current = JobType.READY;
-	}
-	
-	public boolean setEnabled(Player trigger){
-		if(!enabled){
-			System.out.println("Listener enabled...");
-			enabled = true;
-			man = trigger;
-			return true;
-		}
-		return false;
-	}
-	
-	public void setDisabled(){
-		if(enabled){
-			System.out.println("Listener disabled...");
-			current = JobType.READY;
-			enabled = false;
-			man = null;
-		}
+	public CMPlayerListener(DataManager db){
+		database = db;
 	}
 	
 	public void onPlayerInteract(PlayerInteractEvent event){
-		if(event.getAction() != Action.LEFT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_AIR){
-			System.out.println(event.getPlayer().getName() + " touched a block!\n" +
-					"Touch method was :" + event.getAction().toString() + "\n" + 
-					"Block type : " + event.getClickedBlock().getType().toString());
-			switch (current){
+		if(database.hasJob(event.getPlayer().getName())){
+			Job temp = database.getJob(event.getPlayer().getName());
+			switch (temp.job){
 			case CASINO_CREATE:
-				if(enabled){
-					if(event.getPlayer() == man){
-						if(house.defineCasino(event.getClickedBlock()))
-							setDisabled();
-					}
+				database.registerCasino(temp.using, getBVector(event));
+				break;
+			case GAME_CREATE:
+				break;
+			}
+		}
+		else if (database.isGameActivator(getBVector(event))){
+			database.playGame(getBVector(event), event.getPlayer());
+		}
+	}
+	
+	public void onPlayerChat(PlayerChatEvent event) {
+		String name = event.getPlayer().getName();
+		if(database.hasJob(name)){
+			Job temp = database.getJob(name);
+			String message = event.getMessage().toLowerCase();
+			switch(temp.job){
+			case CASINO_CREATE:
+				if(message.matches("^name .*")){
+					event.setCancelled(true);
+					database.nameCasino(temp.using, event.getMessage().substring(5));
 				}
 				break;
 			case GAME_CREATE:
-				if(enabled){
-					if(event.getPlayer() == man){
-						if(machine.buildInteract(event.getClickedBlock())){
-							games.put(event.getClickedBlock(), machine);
-							setDisabled();
-						}
-					}
+				if(message.matches("^type .*")){
+					event.setCancelled(true);
+					//TODO Create a Game type selection function.
 				}
 				break;
-			default:
-				if(!games.isEmpty()){
-					if(games.containsKey(event.getClickedBlock())){
-						System.out.println("Activating game!");
-						Game game = games.get(event.getClickedBlock());
-						if (game != null)
-							game.enable(event.getPlayer());
-					}
-				}
 			}
 		}
-		return;
-	}
-
-	public boolean setJob(JobType job, Casino casino) {
-		System.out.println("Giving job: " + job.toString());
-		current = job;
-		house  = casino;
-		return true;
-	}
-
-	public boolean setJob(JobType job, Casino casino, Game client) {
-		System.out.println("Giving job: " + job.toString());
-		current = job;
-		house = casino;
-		machine = client;
-		return true;
-	}
+    }
 	
-	public void registerGames(HashMap<Block, Game> newgames){
-		games.putAll(newgames);
+	private BlockVector getBVector(PlayerInteractEvent event){
+		return event.getClickedBlock().getLocation().toVector().toBlockVector();
 	}
 }

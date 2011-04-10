@@ -1,106 +1,90 @@
 package com.nhksos.quantumrex.Casino;
 
-import java.util.HashMap;
+import com.nhksos.quantumrex.Game.Game;
 
-import com.nhksos.quantumrex.Game.*;
-
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BlockVector;
 
 public class Casino {
+	private static int NextID = 0;
+	public static final int NullID = -1;
+	
 	public Player owner;
 	public String name;
-	public CasinoManager plugin;
-	public HashMap<Block, Game> games;
-	private Block corner1, corner3;
+	public ID id;
+	public DataManager database;
+	private BlockVector corner1, corner3;
 	
-	public Casino(CasinoManager parent, Player person){
+	public Casino(DataManager data, Player person, ID i){
 		System.out.println("Casino created for " + person.getName());
-		plugin = parent;
+		database = data;
 		owner = person;
-		games = new HashMap<Block, Game>();
+		id = i;
 		corner1 = corner3 = null;
 	}
 	
-	public boolean defineGame(Game game, Block enabler){
-		if(games.containsValue(game)){
-			if(games.containsKey(null)){
-				games.remove(null);
-				games.put(enabler, game);
-			}
-			else
-				System.out.println("The game was already defined... weird huh?");
-		}
-		else
-			System.out.println("This game is apparently not a member of this casino... weird huh?");
-		return true;
-	}
-
-	public Game createGame(GameType type) {
-		Game game;
-		switch (type){
-		case SLOT_MACHINE:
-			game = new SlotMachine(this);
-			break;
-		default:
-			game = null;
-		}
-		if (game != null)
-			games.put(null, game);
+	public static class CasinoIDAccess{
+		private CasinoIDAccess(){}
 		
-		return game;
-	}
-
-	public boolean defineCasino(Block clicked) {
-		if (corner1 == null){
-			corner1 = clicked;
-			System.out.println("Corner1 defined!");
-			return false;
+		public void setNextID(int id){
+			NextID = id;
 		}
-		else if(corner3 == null){
-			int x, X, z, Z;
-			if(corner1.getX() > clicked.getX()){
-				x = clicked.getX();
-				X = corner1.getX();
-			}
-			else{
-				x = corner1.getX();
-				X = clicked.getX();
-			}
-			if(corner1.getZ() > clicked.getZ()){
-				z = clicked.getZ();
-				Z = corner1.getZ();
-			}
-			else{
-				z = corner1.getZ();
-				Z = clicked.getZ();
-			}
-			
-			World w = clicked.getWorld();
-			Location l1, l3;
-			l1  = l3 = clicked.getLocation().clone();
-			l1.setX(x); l1.setZ(z); l1.setY(w.getHighestBlockYAt(x, z));
-			l3.setX(X); l3.setZ(Z); l3.setY(w.getHighestBlockYAt(X, Z));
-			corner1 = w.getBlockAt(l1);
-			corner3 = w.getBlockAt(l3);
-			System.out.println("Corner3 defined! Casino bounded!");
-			
-			return true;
-		}
-		else{
-			System.out.println("Trying to add corners to an already defined casino... Weird huh?");
-			return true;
+		public int getNextID(){
+			return NextID++;
 		}
 	}
 	
-	public boolean isInside(Block coords){
-		if (corner1.getX() <= coords.getX() && corner3.getX() > coords.getX()){
-			if(corner1.getZ() <= coords.getZ() && corner3.getZ() > coords.getZ()){
-				return true;
-			}
-		}
+	public static void init(DataManager db){
+		db.receiveKey(new CasinoIDAccess());
+	}
+	
+	public boolean defineGame(Game game, Block enabler){
 		return false;
+	}
+
+	public Game createGame(GameType type) {
+		return null;
+	}
+
+	public boolean defineCasino(BlockVector clicked) {
+		if(corner1 == null){
+			corner1 = clicked;
+			owner.sendMessage("Corner 1 defined. One left!");
+		}
+		else if(clicked != corner1){
+			corner3 = BlockVector.getMaximum(clicked, corner1).toBlockVector();
+			corner1 = BlockVector.getMinimum(corner1, clicked).toBlockVector();
+			corner3.setY(0);
+			corner1.setY(0);
+			
+			owner.sendMessage("Casino boundaries defined!");
+			owner.sendMessage("Total area: " + getArea() + "Square Meters.");
+		}
+		return complete();
+	}
+	
+	public int getArea(){
+		int length = corner3.getBlockX() - corner1.getBlockX();
+		int width = corner3.getBlockZ() - corner1.getBlockZ();
+		return length * width;
+	}
+	
+	public boolean isInside(BlockVector coords){
+		coords.setY(0);
+		if (coords.isInAABB(corner1, corner3))
+			return true;
+		return false;
+	}
+
+	public boolean setName(String n) {
+		name = n;
+		owner.sendMessage("You Casino's name was set to: " + name + "!");
+		
+		return complete();
+	}
+
+	private boolean complete() {
+		return (corner1 != null && corner3 != null && name != "");
 	}
 }

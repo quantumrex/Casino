@@ -4,6 +4,7 @@
 package com.nhksos.quantumrex.Game;
 
 import com.nhksos.quantumrex.Casino.Casino;
+import com.nhksos.quantumrex.Casino.DataManager;
 
 import org.bukkit.DyeColor;
 import org.bukkit.block.Block;
@@ -20,7 +21,6 @@ public class SlotMachine extends Game {
 	
 	private class Spinner implements Runnable{
 		int taskId;
-		Plugin main;
 		SlotMachine parent;
 		private Block wheel;
 		private boolean spinning;
@@ -28,7 +28,6 @@ public class SlotMachine extends Game {
 		public Spinner(SlotMachine game, Block spin){
 			taskId = -1;
 			parent = game;
-			main = parent.owner.plugin;
 			if (spin.getType() == Material.WOOL)
 				wheel = spin;
 			else{
@@ -45,7 +44,7 @@ public class SlotMachine extends Game {
 			}
 			else{
 				spinning = true;
-				taskId = main.getServer().getScheduler().scheduleAsyncRepeatingTask(main, this, 0L, 10L);
+				//taskId = main.getServer().getScheduler().scheduleAsyncRepeatingTask(main, this, 0L, 7L);
 				if (taskId == -1){
 					System.out.println("Could not start spinner...");
 					return false;
@@ -57,7 +56,7 @@ public class SlotMachine extends Game {
 		public boolean stop(){
 			if (spinning){
 				spinning = false;
-				main.getServer().getScheduler().cancelTask(taskId);
+				//main.getServer().getScheduler().cancelTask(taskId);
 				return true;
 			}
 			else{
@@ -83,8 +82,8 @@ public class SlotMachine extends Game {
 		}
 	}
 
-	public SlotMachine(Casino casino) {
-		super(casino);
+	public SlotMachine(Casino casino, DataManager db) {
+		super(casino, db);
 	}
 	
 	public SlotMachine(Casino casino, Block key){
