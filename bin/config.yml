@@ -1,0 +1,12 @@
+global:
+    stuff: yes
+
+casino1:
+    owner: quantumrex
+    machine1:
+        type: SLOT
+        base:
+            X: 
+            Y: 
+            Z: 
+            FACE: 
