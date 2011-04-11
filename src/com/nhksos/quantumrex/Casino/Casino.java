@@ -7,12 +7,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public class Casino {
-	private static int NextID = 0;
+	private static int NextID = 17;
 	public static final int NullID = -1;
 	
 	public Player owner;
 	public String name;
-	public ID id;
+	public final ID id;
 	public DataManager database;
 	private Vector corner1, corner3;
 	
@@ -44,11 +44,11 @@ public class Casino {
 		return false;
 	}
 
-	public Game createGame(GameType type) {
+	public Game createGame(GameType type, ID i) {
 		Game newgame = null;
 		switch (type){
 		case SLOT_MACHINE:
-			newgame = new SlotMachine(this, database);
+			newgame = new SlotMachine(this, database, i);
 			break;
 		case ROULETTE_WHEEL:
 			break;
@@ -69,8 +69,8 @@ public class Casino {
 		}
 		else if(!vector.equals(corner1) && corner3 == null){
 			Vector cornertemp = corner1;
-			corner3 = Vector.getMaximum(vector, corner1).toBlockVector();
-			corner1 = Vector.getMinimum(corner1, vector).toBlockVector();
+			corner3 = Vector.getMaximum(vector, corner1);
+			corner1 = Vector.getMinimum(corner1, vector);
 			corner3.setY(0);
 			corner1.setY(0);
 			

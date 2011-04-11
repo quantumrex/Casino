@@ -31,7 +31,7 @@ public class CMPlayerListener extends PlayerListener {
 		Player player = event.getPlayer();
 		String name = player.getName();
 		Block block = event.getClickedBlock();
-		Vector vector = getBVector(event);
+		Vector vector = getVector(event);
 		if(database.hasJob(name)){
 			Job temp = database.getJob(name);
 			switch (temp.job){
@@ -46,7 +46,7 @@ public class CMPlayerListener extends PlayerListener {
 		else if(database.isPlaying(name)){
 			database.playInteract(name, block);
 		}
-		else if (database.isGameActivator(getBVector(event))){
+		else if (database.isGameActivator(getVector(event))){
 			database.playGame(vector, player);
 		}
 	}
@@ -78,7 +78,7 @@ public class CMPlayerListener extends PlayerListener {
 		}
     }
 	
-	private Vector getBVector(PlayerInteractEvent event){
+	private Vector getVector(PlayerInteractEvent event){
 		return event.getClickedBlock().getLocation().toVector();
 	}
 }

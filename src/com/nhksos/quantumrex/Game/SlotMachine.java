@@ -5,6 +5,7 @@ package com.nhksos.quantumrex.Game;
 
 import com.nhksos.quantumrex.Casino.Casino;
 import com.nhksos.quantumrex.Casino.DataManager;
+import com.nhksos.quantumrex.Casino.ID;
 
 import org.bukkit.DyeColor;
 import org.bukkit.block.Block;
@@ -80,8 +81,8 @@ public class SlotMachine extends Game {
 		}
 	}
 
-	public SlotMachine(Casino casino, DataManager db) {
-		super(casino, db);
+	public SlotMachine(Casino casino, DataManager db, ID i) {
+		super(casino, db, i);
 	}
 
 	@Override
@@ -95,6 +96,7 @@ public class SlotMachine extends Game {
 				owner.owner.sendMessage("Trigger set!");
 				trigger = block;
 				database.registerActivator(block.getLocation().toVector(), id);
+				owner.owner.sendMessage("This gametype now needs a single wool block spinner.");
 				break;
 			default:
 				owner.owner.sendMessage("Not a valid block for trigger...");

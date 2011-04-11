@@ -10,13 +10,13 @@ import org.bukkit.entity.Player;
 enum MachineState {READY, RUNNING, WAITING, STOPPED, BROKEN}; 
 
 public abstract class Game {
-	private static int NextID = 0;
+	private static int NextID = 17;
 	public static final int NullID = -1;
 	
 	DataManager database;
 	Casino owner;
 	Player patron;
-	ID id;
+	final ID id;
 	Block trigger;
 	double payout;
 	double payin;
@@ -39,10 +39,11 @@ public abstract class Game {
 		db.receiveKey(new GameIDAccess());
 	}
 	
-	public Game(Casino casino, DataManager db) {
+	public Game(Casino casino, DataManager db, ID i) {
 		owner = casino;
 		database = db;
 		patron = null;
+		id = i;
 		state = MachineState.BROKEN;
 	}
 	
@@ -57,8 +58,4 @@ public abstract class Game {
 	public abstract void playInteract(Block block);
 	
 	public abstract void testGame();
-
-	public void setID(ID using) {
-		id = using;
-	}
 }

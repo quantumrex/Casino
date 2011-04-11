@@ -77,10 +77,10 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 			if(sender instanceof Player){
 				Player player = (Player) sender;
 				if (command == getCommand("makecasino")){
-					database.registerJob(player, JobType.CASINO_CREATE);
+					database.registerJob(player, JobType.CASINO_CREATE, args);
 				}
 				else if(command == getCommand("makemachine")){
-					database.registerJob(player, JobType.GAME_CREATE);
+					database.registerJob(player, JobType.GAME_CREATE, args);
 				}
 				else if (command == getCommand("testcasino")){
 					// TODO test casino

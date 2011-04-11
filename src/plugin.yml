@@ -1,6 +1,6 @@
 name: CasinoManager
 main: com.nhksos.quantumrex.Casino.CasinoManager
-version: 0.01
+version: 0.11
 website: http://github.com/quantumrex/Casino
 author: quantumrex
 

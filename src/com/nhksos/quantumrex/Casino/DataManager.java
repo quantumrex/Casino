@@ -113,8 +113,8 @@ public class DataManager {
 	}
 	
 	public void createGame(Job job, GameType type){
-		ID cid = job.using;
-		cid.gameID = Game.NullID;
+		//TODO There's a bug in the ID assignment code
+		ID cid = new ID(job.using.casinoID, Game.NullID);
 		Casino house = casinos.get(cid);
 		if (house == null)
 			System.out.println("HOUSE IS NULL!!!");
@@ -122,7 +122,7 @@ public class DataManager {
 		switch(type){
 		case slot:
 		case SLOT_MACHINE:
-			newgame = house.createGame(GameType.SLOT_MACHINE);
+			newgame = house.createGame(GameType.SLOT_MACHINE, job.using);
 			break;
 		case wheel:
 		case roulette:
@@ -140,11 +140,8 @@ public class DataManager {
 		case target:
 		case TARGET_PRACTICE:
 			break;
-		default:
-			house.owner.sendMessage("That is not a valid game type. Please try again.");	
 		}
 		if (newgame != null){
-			newgame.setID(job.using);
 			games.put(job.using, newgame);
 			job.player.sendMessage("You have a new game for your casino. You now need");
 			job.player.sendMessage("to construct it.");
@@ -196,7 +193,7 @@ public class DataManager {
 		//TODO Implement
 	}
 	
-	public void registerJob(Player player, JobType job){
+	public void registerJob(Player player, JobType job, String[] args){
 		if(!jobs.containsKey(player.getName())){
 			boolean jobcreated = false;
 			//Create a new job for the DataManager to feed to CMPlayerListener
@@ -204,13 +201,16 @@ public class DataManager {
 			newjob.job = job;
 			newjob.player = player;
 			//Job needs an ID
-			ID current = new ID();
+			int casino, game;
+			ID current;
 			
 			switch(job){
 			case CASINO_CREATE:
 				if (!owners.containsKey(player.getName())){
-					current.casinoID = casinokey.getNextID();
-					current.gameID = Game.NullID;
+					casino = casinokey.getNextID();
+					game = Game.NullID;
+					
+					current = new ID(casino, game);
 					
 					newjob.using = current;
 					jobs.put(player.getName(), newjob);
@@ -221,8 +221,20 @@ public class DataManager {
 					player.sendMessage("You are now ready to make your casino.");
 					player.sendMessage("Start by clicking the blocks that define \n" +
 									   "  two opposite corners of its boundary.");
-					player.sendMessage("You must also name it. Example:\n " +
-									   "  \"name Casino\" would name it Casino.");
+					if(args.length == 0){
+						player.sendMessage("You must also name it. Example:\n " +
+							"  \"name Casino\" would name it Casino.");
+					}
+					else if (args.length == 1){
+						nameCasino(current, args[0]);
+					}
+					else{
+						String name = "";
+						for (int i = 1; i < args.length; i++){
+							name = name + ' ' + args[i];
+						}
+						nameCasino(current, name);
+					}
 					jobcreated = true;
 				}
 				else{
@@ -232,15 +244,35 @@ public class DataManager {
 				break;
 			case GAME_CREATE:
 				if(owners.containsKey(player.getName())){
-					current.casinoID = owners.get(player.getName()).casinoID;
-					current.gameID = gamekey.getNextID();
+					casino = owners.get(player.getName()).casinoID;
+					game = gamekey.getNextID();
+					
+					current = new ID(casino, game);
 					
 					newjob.using = current;
 					jobs.put(player.getName(), newjob);
 
 					player.sendMessage("You are now ready to make a game for your casino.");
-					player.sendMessage("  Start by issuing a game type. For Example:");
-					player.sendMessage("  \"type slot\" would get you a slot machine");
+					if (args.length == 0){
+						player.sendMessage("  Start by issuing a game type. For Example:");
+						player.sendMessage("  \"type slot\" would get you a slot machine");
+					}
+					else if (args.length == 1){
+						try {
+							GameType type = GameType.valueOf(args[0]);
+							createGame(newjob, type);
+						}
+						catch (IllegalArgumentException e){
+							player.sendMessage("That was not a valid game type. Try again;");
+							player.sendMessage("  Start by issuing a game type. For Example:");
+							player.sendMessage("  \"type slot\" would get you a slot machine");
+						}
+					}
+					else{
+						player.sendMessage("That was not a valid game type. Try again;");
+						player.sendMessage("  Start by issuing a game type. For Example:");
+						player.sendMessage("  \"type slot\" would get you a slot machine");
+					}
 					jobcreated = true;
 				}
 				else{
