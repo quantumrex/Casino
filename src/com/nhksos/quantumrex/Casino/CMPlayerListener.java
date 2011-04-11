@@ -35,6 +35,7 @@ public class CMPlayerListener extends PlayerListener {
 				database.registerCasino(temp.using, getBVector(event));
 				break;
 			case GAME_CREATE:
+				//TODO Implement block detection for game creation.
 				break;
 			}
 		}
@@ -58,7 +59,7 @@ public class CMPlayerListener extends PlayerListener {
 			case GAME_CREATE:
 				if(message.matches("^type[ ].*")){
 					event.setCancelled(true);
-					//TODO Create a Game type selection function.
+					database.registerGame(temp, GameType.valueOf(message.substring(5)));
 				}
 				break;
 			}

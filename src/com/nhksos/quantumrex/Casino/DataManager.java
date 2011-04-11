@@ -91,6 +91,18 @@ public class DataManager {
 			cancelJob(player);
 		}
 	}
+
+	public boolean hasCasino(String name) {
+		return owners.containsKey(name);
+	}
+
+	public Casino getCasino(String name) {
+		return casinos.get(owners.get(name));
+	}
+
+	public Casino getCasino(ID id) {
+		return casinos.get(id);
+	}
 	
 	public void testCasino(String string){
 		//TODO Implement
@@ -100,8 +112,47 @@ public class DataManager {
 		//TODO Implement
 	}
 	
-	public void registerGame(){
-		//TODO Implement
+	public void registerGame(Job job, GameType type){
+		ID cid = job.using;
+		cid.gameID = Game.NullID;
+		Casino house = casinos.get(cid);
+		if (house == null)
+			System.out.println("HOUSE IS NULL!!!");
+		Game newgame = null;
+		switch(type){
+		case slot:
+		case SLOT_MACHINE:
+			newgame = house.createGame(GameType.SLOT_MACHINE);
+			break;
+		case wheel:
+		case roulette:
+		case ROULETTE_WHEEL:
+			break;
+		case cup:
+		case shell:
+		case SHELL_GAME:
+			break;
+		case bjack:
+		case blackjack:
+		case CARDS_BLACKJACK:
+			break;
+		case archery:
+		case target:
+		case TARGET_PRACTICE:
+			break;
+		default:
+			house.owner.sendMessage("That is not a valid game type. Please try again.");	
+		}
+		if (newgame != null){
+			newgame.setID(job.using.gameID);
+			games.put(job.using, newgame);
+			job.player.sendMessage(
+					"You have a new game for your casino. You now need \n" +
+					"to construct it. \n" +
+					"  Start by defining its activation switch. \n" +
+					"  Click or otherwise activate the switch to \n" +
+					"  set it.");
+		}
 	}
 	
 	public boolean isGameActivator(BlockVector vector) {
@@ -166,7 +217,7 @@ public class DataManager {
 
 					player.sendMessage("You are now ready to make a game for your casino.");
 					player.sendMessage("  Start by issuing a game type. For Example:");
-					player.sendMessage("  \"game slot\" would get you a slot machine");
+					player.sendMessage("  \"type slot\" would get you a slot machine");
 				}
 				else{
 					player.sendMessage("You don't seem to have a casino to put games in.");
@@ -215,6 +266,22 @@ class Bet{
 class ID{
 	int casinoID;
 	int gameID;
+	
+	@Override
+	public int hashCode(){
+		double value = casinoID * 33;
+		value = Math.pow(value, gameID);
+		return (int)value;
+	}
+	
+	@Override
+	public boolean equals(Object o){
+		if(o instanceof ID){
+			if (((ID) o).hashCode() == hashCode())
+				return true;
+		}
+		return false;
+	}
 }
 
 class Job{
@@ -224,4 +291,10 @@ class Job{
 }
 
 enum JobType {CASINO_CREATE, GAME_CREATE, GAME_DESTROY};
-enum GameType{SLOT_MACHINE, ROULETTE_WHEEL, SHELL_GAME, BLACKJACK, TARGET_GAME};
+enum GameType{
+	slot, SLOT_MACHINE, 
+	roulette, wheel, ROULETTE_WHEEL, 
+	shell, cup, SHELL_GAME, 
+	blackjack, bjack, CARDS_BLACKJACK, 
+	target, archery, TARGET_PRACTICE
+};

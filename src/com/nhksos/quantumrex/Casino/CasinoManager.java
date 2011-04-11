@@ -94,9 +94,10 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 				System.out.println("[CasinoManager] You can't do that from here!");
 			return true;
 		}
-		else
-			// TODO player chat
+		else{
+			sender.sendMessage("Casino plugin is disabled. Waiting for iConomy, probably.");
 			System.out.println("[CasinoManager] Plugin is disabled. Waiting for iConomy, probably.");
+		}
         return false;
     }
 

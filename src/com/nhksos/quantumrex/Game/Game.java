@@ -61,5 +61,8 @@ public abstract class Game {
 	public abstract boolean buildInteract(Block block);
 	
 	public abstract void testGame();
-	
+
+	public void setID(int using) {
+		ID = using;
+	}
 }

@@ -1,6 +1,6 @@
 package com.nhksos.quantumrex.Casino;
 
-import com.nhksos.quantumrex.Game.Game;
+import com.nhksos.quantumrex.Game.*;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -45,7 +45,21 @@ public class Casino {
 	}
 
 	public Game createGame(GameType type) {
-		return null;
+		Game newgame = null;
+		switch (type){
+		case SLOT_MACHINE:
+			newgame = new SlotMachine(this, database);
+			break;
+		case ROULETTE_WHEEL:
+			break;
+		case SHELL_GAME:
+			break;
+		case CARDS_BLACKJACK:
+			break;
+		case TARGET_PRACTICE:
+			break;
+		}
+		return newgame;
 	}
 
 	public boolean defineCasino(BlockVector clicked) {
