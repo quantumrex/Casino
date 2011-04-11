@@ -4,7 +4,7 @@ import com.nhksos.quantumrex.Game.*;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.util.BlockVector;
+import org.bukkit.util.Vector;
 
 public class Casino {
 	private static int NextID = 0;
@@ -14,7 +14,7 @@ public class Casino {
 	public String name;
 	public ID id;
 	public DataManager database;
-	private BlockVector corner1, corner3;
+	private Vector corner1, corner3;
 	
 	public Casino(DataManager data, Player person, ID i){
 		System.out.println("Casino created for " + person.getName());
@@ -62,15 +62,15 @@ public class Casino {
 		return newgame;
 	}
 
-	public boolean defineCasino(BlockVector clicked) {
+	public boolean defineCasino(Vector vector) {
 		if(corner1 == null){
-			corner1 = clicked;
+			corner1 = vector;
 			owner.sendMessage("Corner 1 defined. One left!");
 		}
-		else if(!clicked.equals(corner1) && corner3 == null){
-			BlockVector cornertemp = corner1;
-			corner3 = BlockVector.getMaximum(clicked, corner1).toBlockVector();
-			corner1 = BlockVector.getMinimum(corner1, clicked).toBlockVector();
+		else if(!vector.equals(corner1) && corner3 == null){
+			Vector cornertemp = corner1;
+			corner3 = Vector.getMaximum(vector, corner1).toBlockVector();
+			corner1 = Vector.getMinimum(corner1, vector).toBlockVector();
 			corner3.setY(0);
 			corner1.setY(0);
 			
@@ -95,7 +95,7 @@ public class Casino {
 		return length * width;
 	}
 	
-	public boolean isInside(BlockVector coords){
+	public boolean isInside(Vector coords){
 		coords.setY(0);
 		if (coords.isInAABB(corner1, corner3))
 			return true;

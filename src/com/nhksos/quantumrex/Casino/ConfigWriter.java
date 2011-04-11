@@ -2,7 +2,7 @@ package com.nhksos.quantumrex.Casino;
 
 import java.util.HashMap;
 
-import org.bukkit.util.BlockVector;
+import org.bukkit.util.Vector;
 
 import com.nhksos.quantumrex.Game.Game;
 
@@ -14,7 +14,7 @@ public class ConfigWriter {
 		database = parent;
 	}
 
-	public HashMap<BlockVector, ID> readActivators() {
+	public HashMap<Vector, ID> readActivators() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -34,7 +34,7 @@ public class ConfigWriter {
 		return null;
 	}
 
-	public void writeActivators(HashMap<BlockVector, ID> activators) {
+	public void writeActivators(HashMap<Vector, ID> activators) {
 		// TODO Auto-generated method stub
 		
 	}

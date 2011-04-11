@@ -94,7 +94,7 @@ public class SlotMachine extends Game {
 			case LEVER:
 				owner.owner.sendMessage("Trigger set!");
 				trigger = block;
-				database.registerActivator(block.getLocation().toVector().toBlockVector(), id);
+				database.registerActivator(block.getLocation().toVector(), id);
 				break;
 			default:
 				owner.owner.sendMessage("Not a valid block for trigger...");

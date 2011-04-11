@@ -29,7 +29,7 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 	
 	//Internal Components
 	//=======================================================
-	private DataManager database;
+	public DataManager database;
 	private CMPluginListener pluginlistener = null;
 	private CMBlockListener blistener = null;
 	private CMPlayerListener plistener = null;

@@ -11,7 +11,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerListener;
-import org.bukkit.util.BlockVector;
+import org.bukkit.util.Vector;
 
 import com.nhksos.quantumrex.Game.Game;
 
@@ -31,7 +31,7 @@ public class CMPlayerListener extends PlayerListener {
 		Player player = event.getPlayer();
 		String name = player.getName();
 		Block block = event.getClickedBlock();
-		BlockVector vector = getBVector(event);
+		Vector vector = getBVector(event);
 		if(database.hasJob(name)){
 			Job temp = database.getJob(name);
 			switch (temp.job){
@@ -78,7 +78,7 @@ public class CMPlayerListener extends PlayerListener {
 		}
     }
 	
-	private BlockVector getBVector(PlayerInteractEvent event){
-		return event.getClickedBlock().getLocation().toVector().toBlockVector();
+	private Vector getBVector(PlayerInteractEvent event){
+		return event.getClickedBlock().getLocation().toVector();
 	}
 }

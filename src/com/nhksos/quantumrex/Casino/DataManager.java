@@ -8,7 +8,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.util.BlockVector;
+import org.bukkit.util.Vector;
 
 import com.nhksos.quantumrex.Casino.Casino.CasinoIDAccess;
 import com.nhksos.quantumrex.Game.Game;
@@ -25,7 +25,7 @@ public class DataManager {
 	private GameIDAccess gamekey;
 	private CasinoIDAccess casinokey;
 	
-	private HashMap<BlockVector, ID> activators;
+	private HashMap<Vector, ID> activators;
 	private HashMap<String, ID> owners;
 	private HashMap<ID, Casino> casinos;
 	private HashMap<ID, Game> games;
@@ -44,7 +44,7 @@ public class DataManager {
 		
 		config = new ConfigWriter(this);
 		
-		activators = new HashMap<BlockVector, ID>();
+		activators = new HashMap<Vector, ID>();
 		owners = new HashMap<String, ID>();
 		casinos = new HashMap<ID, Casino>();
 		games = new HashMap<ID, Game>();
@@ -81,7 +81,7 @@ public class DataManager {
 		config.writeGames(games);
 	}*/
 	
-	public void registerCasino(ID id, BlockVector vector){
+	public void registerCasino(ID id, Vector vector){
 		if (casinos.get(id).defineCasino(vector)){
 			String player = casinos.get(id).owner.getName();
 			cancelJob(player);
@@ -165,13 +165,13 @@ public class DataManager {
 					);
 		}
 	}
-	public void registerActivator(BlockVector vector, ID id){
+	public void registerActivator(Vector vector, ID id){
 		activators.put(vector, id);
 	}
-	public boolean isGameActivator(BlockVector vector) {
+	public boolean isGameActivator(Vector vector) {
 		return activators.containsKey(vector);
 	}
-	public void playGame(BlockVector vector, Player player){
+	public void playGame(Vector vector, Player player){
 		if (!running.containsKey(player.getName())){
 			ID temp = activators.get(vector);
 			running.put(player.getName(), temp);
