@@ -2,8 +2,12 @@ package com.nhksos.quantumrex.Casino;
 
 import java.util.HashMap;
 
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.BlockVector;
 
 import com.nhksos.quantumrex.Casino.Casino.CasinoIDAccess;
@@ -84,22 +88,18 @@ public class DataManager {
 		}
 			
 	}
-
 	public void nameCasino(ID id, String name){
 		if (casinos.get(id).setName(name)){
 			String player = casinos.get(id).owner.getName();
 			cancelJob(player);
 		}
 	}
-
 	public boolean hasCasino(String name) {
 		return owners.containsKey(name);
 	}
-
 	public Casino getCasino(String name) {
 		return casinos.get(owners.get(name));
 	}
-
 	public Casino getCasino(ID id) {
 		return casinos.get(id);
 	}
@@ -112,7 +112,7 @@ public class DataManager {
 		//TODO Implement
 	}
 	
-	public void registerGame(Job job, GameType type){
+	public void createGame(Job job, GameType type){
 		ID cid = job.using;
 		cid.gameID = Game.NullID;
 		Casino house = casinos.get(cid);
@@ -144,21 +144,33 @@ public class DataManager {
 			house.owner.sendMessage("That is not a valid game type. Please try again.");	
 		}
 		if (newgame != null){
-			newgame.setID(job.using.gameID);
+			newgame.setID(job.using);
 			games.put(job.using, newgame);
-			job.player.sendMessage(
-					"You have a new game for your casino. You now need \n" +
-					"to construct it. \n" +
-					"  Start by defining its activation switch. \n" +
-					"  Click or otherwise activate the switch to \n" +
-					"  set it.");
+			job.player.sendMessage("You have a new game for your casino. You now need");
+			job.player.sendMessage("to construct it.");
+			job.player.sendMessage("  Start by defining its activation switch.");
+			job.player.sendMessage("  Click or otherwise activate the switch to");
+			job.player.sendMessage("  set it.");
 		}
 	}
-	
+
+	public void registerGame(String name, ID id, Block block) {
+		if(games.containsKey(id)){
+			if (games.get(id).buildInteract(block))
+				cancelJob(name);
+		}
+		else{
+			parent.getServer().getPlayer(name).sendMessage(
+					"You still need to state a type for this game."
+					);
+		}
+	}
+	public void registerActivator(BlockVector vector, ID id){
+		activators.put(vector, id);
+	}
 	public boolean isGameActivator(BlockVector vector) {
 		return activators.containsKey(vector);
 	}
-	
 	public void playGame(BlockVector vector, Player player){
 		if (!running.containsKey(player.getName())){
 			ID temp = activators.get(vector);
@@ -170,13 +182,23 @@ public class DataManager {
 			player.sendMessage("Finish the game you started first.");
 		}
 	}
-	
+	public boolean isPlaying(String player){
+		return running.containsKey(player);
+	}
+	public void playInteract(String player, Block block){
+		games.get(running.get(player)).playInteract(block);
+	}
+	public void finishGame(String name){
+		running.remove(name);
+		System.out.println(name + " finished a game.");
+	}
 	public void destroyGame(){
 		//TODO Implement
 	}
 	
 	public void registerJob(Player player, JobType job){
 		if(!jobs.containsKey(player.getName())){
+			boolean jobcreated = false;
 			//Create a new job for the DataManager to feed to CMPlayerListener
 			Job newjob = new Job();
 			newjob.job = job;
@@ -201,6 +223,7 @@ public class DataManager {
 									   "  two opposite corners of its boundary.");
 					player.sendMessage("You must also name it. Example:\n " +
 									   "  \"name Casino\" would name it Casino.");
+					jobcreated = true;
 				}
 				else{
 					player.sendMessage("You seem to have a Casino already.");
@@ -218,6 +241,7 @@ public class DataManager {
 					player.sendMessage("You are now ready to make a game for your casino.");
 					player.sendMessage("  Start by issuing a game type. For Example:");
 					player.sendMessage("  \"type slot\" would get you a slot machine");
+					jobcreated = true;
 				}
 				else{
 					player.sendMessage("You don't seem to have a casino to put games in.");
@@ -225,6 +249,9 @@ public class DataManager {
 				}
 				break;
 			}
+			if (jobcreated)
+				System.out.println("Created job for user " + player.getName() + ".\n" +
+						"  Type: " + job.toString());
 		}
 		else{
 			player.sendMessage("You're already working on a job. Finish it first.");
@@ -238,15 +265,18 @@ public class DataManager {
 	}
 	
 	private void cancelJob(String player) {
+		Job temp = jobs.get(player);
 		jobs.remove(player);
+		System.out.println("User " + player + " finished a job.\n" +
+				"  Type: " + temp.job.toString());
 	}
 	
 	public Job getJob(String player){
 		return jobs.get(player);
 	}
 	
-	public boolean finishJob(){
-		//TODO Implement
+	public boolean cancelJob(){
+		//TODO Implement if I ever need a public cancelJob
 		return false;
 	}
 	
@@ -255,6 +285,13 @@ public class DataManager {
 		return false;
 	}
 
+	public BukkitScheduler getScheduler() {
+		return parent.getServer().getScheduler();
+	}
+
+	public JavaPlugin getPlugin() {
+		return parent;
+	}
 }
 
 class Bet{
@@ -263,26 +300,7 @@ class Bet{
 	String outcome;
 }
 
-class ID{
-	int casinoID;
-	int gameID;
-	
-	@Override
-	public int hashCode(){
-		double value = casinoID * 33;
-		value = Math.pow(value, gameID);
-		return (int)value;
-	}
-	
-	@Override
-	public boolean equals(Object o){
-		if(o instanceof ID){
-			if (((ID) o).hashCode() == hashCode())
-				return true;
-		}
-		return false;
-	}
-}
+
 
 class Job{
 	JobType job;

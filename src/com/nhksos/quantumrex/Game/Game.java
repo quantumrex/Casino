@@ -2,6 +2,7 @@ package com.nhksos.quantumrex.Game;
 
 import com.nhksos.quantumrex.Casino.Casino;
 import com.nhksos.quantumrex.Casino.DataManager;
+import com.nhksos.quantumrex.Casino.ID;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -14,7 +15,8 @@ public abstract class Game {
 	
 	DataManager database;
 	Casino owner;
-	int ID;
+	Player patron;
+	ID id;
 	Block trigger;
 	double payout;
 	double payin;
@@ -40,19 +42,11 @@ public abstract class Game {
 	public Game(Casino casino, DataManager db) {
 		owner = casino;
 		database = db;
+		patron = null;
 		state = MachineState.BROKEN;
 	}
 	
-	public Game(Casino casino, Block key){
-		owner = casino;
-		trigger = key;
-	}
-
-	public final MachineState getState(){
-		return state;
-	}
-	
-	public boolean isComplete(){
+	public boolean isReady(){
 		return (state == MachineState.READY);
 	}
 	
@@ -60,9 +54,11 @@ public abstract class Game {
 	
 	public abstract boolean buildInteract(Block block);
 	
+	public abstract void playInteract(Block block);
+	
 	public abstract void testGame();
 
-	public void setID(int using) {
-		ID = using;
+	public void setID(ID using) {
+		id = using;
 	}
 }

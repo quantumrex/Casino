@@ -28,19 +28,26 @@ public class CMPlayerListener extends PlayerListener {
 	}
 	
 	public void onPlayerInteract(PlayerInteractEvent event){
-		if(database.hasJob(event.getPlayer().getName())){
-			Job temp = database.getJob(event.getPlayer().getName());
+		Player player = event.getPlayer();
+		String name = player.getName();
+		Block block = event.getClickedBlock();
+		BlockVector vector = getBVector(event);
+		if(database.hasJob(name)){
+			Job temp = database.getJob(name);
 			switch (temp.job){
 			case CASINO_CREATE:
-				database.registerCasino(temp.using, getBVector(event));
+				database.registerCasino(temp.using, vector);
 				break;
 			case GAME_CREATE:
-				//TODO Implement block detection for game creation.
+				database.registerGame(name, temp.using, block);
 				break;
 			}
 		}
+		else if(database.isPlaying(name)){
+			database.playInteract(name, block);
+		}
 		else if (database.isGameActivator(getBVector(event))){
-			database.playGame(getBVector(event), event.getPlayer());
+			database.playGame(vector, player);
 		}
 	}
 	
@@ -59,7 +66,12 @@ public class CMPlayerListener extends PlayerListener {
 			case GAME_CREATE:
 				if(message.matches("^type[ ].*")){
 					event.setCancelled(true);
-					database.registerGame(temp, GameType.valueOf(message.substring(5)));
+					try {
+						GameType type = GameType.valueOf(message.substring(5));
+						database.createGame(temp, type);
+					} catch (IllegalArgumentException e) {
+						event.getPlayer().sendMessage("That was not a valid game type. Try again.");
+					}
 				}
 				break;
 			}

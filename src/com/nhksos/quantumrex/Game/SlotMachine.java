@@ -39,12 +39,11 @@ public class SlotMachine extends Game {
 		public boolean spin(){
 			// TODO Allow user communication
 			if (spinning){
-				System.out.println("Spinner is already running, stopping...");
 				return stop();
 			}
 			else{
 				spinning = true;
-				//taskId = main.getServer().getScheduler().scheduleAsyncRepeatingTask(main, this, 0L, 7L);
+				taskId = database.getScheduler().scheduleAsyncRepeatingTask(database.getPlugin(), this, 0L, 7L);
 				if (taskId == -1){
 					System.out.println("Could not start spinner...");
 					return false;
@@ -56,11 +55,10 @@ public class SlotMachine extends Game {
 		public boolean stop(){
 			if (spinning){
 				spinning = false;
-				//main.getServer().getScheduler().cancelTask(taskId);
+				database.getScheduler().cancelTask(taskId);
 				return true;
 			}
 			else{
-				System.out.println("Spinner is stopped. Starting...");
 				return spin();
 			}
 		}
@@ -85,62 +83,58 @@ public class SlotMachine extends Game {
 	public SlotMachine(Casino casino, DataManager db) {
 		super(casino, db);
 	}
-	
-	public SlotMachine(Casino casino, Block key){
-		super(casino, key);
-		slot = null;
+
+	@Override
+	public boolean buildInteract(Block block) {
+		if (trigger == null){
+			switch(block.getType()){
+			case STONE_BUTTON:
+			case STONE_PLATE:
+			case WOOD_PLATE:
+			case LEVER:
+				owner.owner.sendMessage("Trigger set!");
+				trigger = block;
+				database.registerActivator(block.getLocation().toVector().toBlockVector(), id);
+				break;
+			default:
+				owner.owner.sendMessage("Not a valid block for trigger...");
+			}
+		}
+		else if (slot == null){
+			slot = new Spinner(this, block);
+			if (slot.ready()){
+				state = MachineState.READY;
+				if (trigger != null)
+					return true;
+			}
+			else{
+				slot = null;
+			}
+		}
+		
+		return false;
 	}
 
 	@Override
-	public boolean enable(Player patron) {
-		System.out.println("Game starting!");
+	public boolean enable(Player p) {
+		patron = p;
 		if (state == MachineState.READY){
-			System.out.println("Game starting!");
 			state = MachineState.RUNNING;
 			slot.spin();
-			return true;
-		}
-		else if (state == MachineState.RUNNING){
-			System.out.println("Game stopping!");
-			state = MachineState.READY;
-			slot.stop();
 			return true;
 		}
 		return false;
 	}
 
 	@Override
-	public boolean buildInteract(Block block) {
-		if (slot == null){
-			slot = new Spinner(this, block);
-			if (slot.ready()){
-				state = MachineState.READY;
-				if (trigger != null)
-					return true;
-				else
-					return false;
-			}
-			else{
-				slot = null;
-				return false;
-			}
+	public void playInteract(Block block) {
+		if (state == MachineState.RUNNING && block.equals(trigger)){
+			state = MachineState.READY;
+			slot.stop();
+			database.finishGame(patron.getName());
 		}
-		else if (trigger == null){
-			switch(block.getType()){
-			case STONE_BUTTON:
-			case STONE_PLATE:
-			case WOOD_PLATE:
-			case LEVER:
-				System.out.println("Trigger set!");
-				trigger = block;
-				return true;
-			default:
-				System.out.println("Not a valid block for trigger...");
-				return false;
-			}
-		}
-		else 
-			return false;
+		else
+			patron.sendMessage("Not my switch, not my problem.");
 	}
 
 	@Override
