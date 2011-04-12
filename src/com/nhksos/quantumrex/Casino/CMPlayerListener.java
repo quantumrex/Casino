@@ -3,17 +3,11 @@
  */
 package com.nhksos.quantumrex.Casino;
 
-import java.util.HashMap;
-
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerListener;
-import org.bukkit.util.Vector;
-
-import com.nhksos.quantumrex.Game.Game;
 
 /**
  * @author quantumrex
@@ -31,7 +25,7 @@ public class CMPlayerListener extends PlayerListener {
 		Player player = event.getPlayer();
 		String name = player.getName();
 		Block block = event.getClickedBlock();
-		Vector vector = getVector(event);
+		SerialVector vector = getVector(event);
 		if(database.hasJob(name)){
 			Job temp = database.getJob(name);
 			switch (temp.job){
@@ -78,7 +72,7 @@ public class CMPlayerListener extends PlayerListener {
 		}
     }
 	
-	private Vector getVector(PlayerInteractEvent event){
-		return event.getClickedBlock().getLocation().toVector();
+	private SerialVector getVector(PlayerInteractEvent event){
+		return (SerialVector)event.getClickedBlock().getLocation().toVector();
 	}
 }

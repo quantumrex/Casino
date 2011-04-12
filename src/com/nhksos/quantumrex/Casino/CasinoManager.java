@@ -3,21 +3,14 @@
  */
 package com.nhksos.quantumrex.Casino;
 
-import java.util.HashMap;
-
-import com.nhksos.quantumrex.Game.Game;
 import com.nijiko.coelho.iConomy.iConomy;
 import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
-
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
-import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -50,7 +43,8 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 	 */
 	@Override
 	public void onDisable() {
-		System.out.println("[CasinoManager] Plugin disabled...");
+			database.save();
+			System.out.println("[CasinoManager] Plugin disabled...");
 	}
 
 	/* (non-Javadoc)

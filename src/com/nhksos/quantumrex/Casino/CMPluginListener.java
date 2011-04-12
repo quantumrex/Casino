@@ -1,15 +1,11 @@
 package com.nhksos.quantumrex.Casino;
 
-import org.bukkit.event.Event;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
-import org.bukkit.event.server.PluginEvent;
 import org.bukkit.event.server.ServerListener;
 
 import com.nijiko.coelho.iConomy.iConomy;
 import com.nijikokun.bukkit.Permissions.Permissions;
-
-import org.bukkit.plugin.Plugin;
 
 /**
  * Checks for plugins whenever one is enabled

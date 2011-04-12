@@ -8,7 +8,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.util.Vector;
 
 import com.nhksos.quantumrex.Casino.Casino.CasinoIDAccess;
 import com.nhksos.quantumrex.Game.Game;
@@ -18,20 +17,17 @@ public class DataManager {
 	private CasinoManager parent;
 	public static PluginDescriptionFile description;
 	
-	private final String defaultpath = "plugins/CasinoManager";
-	private final String configname = "config.yml";
-	private final String savename = "casinodata.save";
-	
 	private GameIDAccess gamekey;
 	private CasinoIDAccess casinokey;
 	
-	private HashMap<Vector, ID> activators;
+	private HashMap<SerialVector, ID> activators;
 	private HashMap<String, ID> owners;
 	private HashMap<ID, Casino> casinos;
 	private HashMap<ID, Game> games;
 	private HashMap<String, Job> jobs;
 	private HashMap<String, ID> running;
 	private HashMap<ID, Bet> bets;
+	private HashMap<String, Stats> stats;
 	
 	private ConfigWriter config;
 	
@@ -43,13 +39,14 @@ public class DataManager {
 		Game.init(this);
 		
 		config = new ConfigWriter(this);
-		
-		activators = new HashMap<Vector, ID>();
+		/*
+		stats = new HashMap<String, Stats>();
+		activators = new HashMap<SerialVector, ID>();
 		owners = new HashMap<String, ID>();
 		casinos = new HashMap<ID, Casino>();
 		games = new HashMap<ID, Game>();
-		
-		//load();
+		*/
+		load();
 		
 		jobs = new HashMap<String, Job>();
 		running = new HashMap<String, ID>();
@@ -63,10 +60,9 @@ public class DataManager {
 	public void receiveKey(GameIDAccess key) {
 		gamekey = key;
 	}
-	
-	/* Have not yet implemented file Saving or Loading, so there will be none of that.
-	 * 
-	 * public void load(){
+	 
+	public void load(){
+		stats = config.getStats();
 		activators = config.readActivators();
 		owners = config.readOwners();
 		casinos = config.readCasinos();
@@ -75,13 +71,14 @@ public class DataManager {
 	
 	public void save(){
 		//TODO Pre-process jobs, running, and bets
+		config.writeStats(stats);
 		config.writeActivators(activators);
 		config.writeOwners(owners);
 		config.writeCasinos(casinos);
 		config.writeGames(games);
-	}*/
+	}
 	
-	public void registerCasino(ID id, Vector vector){
+	public void registerCasino(ID id, SerialVector vector){
 		if (casinos.get(id).defineCasino(vector)){
 			String player = casinos.get(id).owner.getName();
 			cancelJob(player);
@@ -162,13 +159,13 @@ public class DataManager {
 					);
 		}
 	}
-	public void registerActivator(Vector vector, ID id){
+	public void registerActivator(SerialVector vector, ID id){
 		activators.put(vector, id);
 	}
-	public boolean isGameActivator(Vector vector) {
+	public boolean isGameActivator(SerialVector vector) {
 		return activators.containsKey(vector);
 	}
-	public void playGame(Vector vector, Player player){
+	public void playGame(SerialVector vector, Player player){
 		if (!running.containsKey(player.getName())){
 			ID temp = activators.get(vector);
 			running.put(player.getName(), temp);
@@ -332,7 +329,12 @@ class Bet{
 	String outcome;
 }
 
-
+class Stats{
+	int wins;
+	int losses;
+	int total;
+	double balance;
+}
 
 class Job{
 	JobType job;

@@ -1,5 +1,7 @@
 package com.nhksos.quantumrex.Game;
 
+import java.io.Serializable;
+
 import com.nhksos.quantumrex.Casino.Casino;
 import com.nhksos.quantumrex.Casino.DataManager;
 import com.nhksos.quantumrex.Casino.ID;
@@ -9,7 +11,10 @@ import org.bukkit.entity.Player;
 
 enum MachineState {READY, RUNNING, WAITING, STOPPED, BROKEN}; 
 
-public abstract class Game {
+public abstract class Game implements Serializable {
+	
+	private static final long serialVersionUID = -6944677438957693318L;
+	
 	private static int NextID = 17;
 	public static final int NullID = -1;
 	

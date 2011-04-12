@@ -1,6 +1,11 @@
 package com.nhksos.quantumrex.Casino;
 
-public class ID{
+import java.io.Serializable;
+
+public class ID implements Serializable{
+	
+	private static final long serialVersionUID = 793060220239482147L;
+	
 	final int casinoID;
 	final int gameID;
 	

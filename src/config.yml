@@ -1,12 +1,14 @@
 global:
-    stuff: yes
-
-casino1:
-    owner: quantumrex
-    machine1:
-        type: SLOT
-        base:
-            X: 
-            Y: 
-            Z: 
-            FACE: 
+    objects:
+        path:           plugins/CasinoManager/
+            casinos:    casinos.sav
+            games:      games.sav
+            owners:     owners.sav
+            activators: activators.sav
+            
+players:
+    quantumrex:
+        wins:    0
+        losses:  0
+        total:   0
+        balance: 0

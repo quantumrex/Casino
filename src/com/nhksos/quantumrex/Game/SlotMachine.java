@@ -6,11 +6,11 @@ package com.nhksos.quantumrex.Game;
 import com.nhksos.quantumrex.Casino.Casino;
 import com.nhksos.quantumrex.Casino.DataManager;
 import com.nhksos.quantumrex.Casino.ID;
+import com.nhksos.quantumrex.Casino.SerialVector;
 
 import org.bukkit.DyeColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.Material;
 
 /**
@@ -22,13 +22,11 @@ public class SlotMachine extends Game {
 	
 	private class Spinner implements Runnable{
 		int taskId;
-		SlotMachine parent;
 		private Block wheel;
 		private boolean spinning;
 		
 		public Spinner(SlotMachine game, Block spin){
 			taskId = -1;
-			parent = game;
 			if (spin.getType() == Material.WOOL)
 				wheel = spin;
 			else{
@@ -64,6 +62,7 @@ public class SlotMachine extends Game {
 			}
 		}
 		
+		@SuppressWarnings("unused")
 		public DyeColor value(){
 			return DyeColor.getByData(wheel.getData());
 		}
@@ -95,7 +94,7 @@ public class SlotMachine extends Game {
 			case LEVER:
 				owner.owner.sendMessage("Trigger set!");
 				trigger = block;
-				database.registerActivator(block.getLocation().toVector(), id);
+				database.registerActivator((SerialVector)block.getLocation().toVector(), id);
 				owner.owner.sendMessage("This gametype now needs a single wool block spinner.");
 				break;
 			default:

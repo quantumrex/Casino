@@ -1,12 +1,17 @@
 package com.nhksos.quantumrex.Casino;
 
+import java.io.Serializable;
+
 import com.nhksos.quantumrex.Game.*;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public class Casino {
+public class Casino implements Serializable {
+	
+	private static final long serialVersionUID = 4202979891585014056L;
+	
 	private static int NextID = 17;
 	public static final int NullID = -1;
 	
@@ -14,7 +19,7 @@ public class Casino {
 	public String name;
 	public final ID id;
 	public DataManager database;
-	private Vector corner1, corner3;
+	private SerialVector corner1, corner3;
 	
 	public Casino(DataManager data, Player person, ID i){
 		System.out.println("Casino created for " + person.getName());
@@ -62,15 +67,15 @@ public class Casino {
 		return newgame;
 	}
 
-	public boolean defineCasino(Vector vector) {
+	public boolean defineCasino(SerialVector vector) {
 		if(corner1 == null){
 			corner1 = vector;
 			owner.sendMessage("Corner 1 defined. One left!");
 		}
 		else if(!vector.equals(corner1) && corner3 == null){
-			Vector cornertemp = corner1;
-			corner3 = Vector.getMaximum(vector, corner1);
-			corner1 = Vector.getMinimum(corner1, vector);
+			SerialVector cornertemp = corner1;
+			corner3 = (SerialVector)Vector.getMaximum(vector, corner1);
+			corner1 = (SerialVector)Vector.getMinimum(corner1, vector);
 			corner3.setY(0);
 			corner1.setY(0);
 			
@@ -95,7 +100,7 @@ public class Casino {
 		return length * width;
 	}
 	
-	public boolean isInside(Vector coords){
+	public boolean isInside(SerialVector coords){
 		coords.setY(0);
 		if (coords.isInAABB(corner1, corner3))
 			return true;
