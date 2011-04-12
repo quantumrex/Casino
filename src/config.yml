@@ -1,10 +1,11 @@
 global:
+    world:
     objects:
-        path:           plugins/CasinoManager/
-            casinos:    casinos.sav
-            games:      games.sav
-            owners:     owners.sav
-            activators: activators.sav
+        path:       plugins/CasinoManager/
+        casinos:    casinos.sav
+        games:      games.sav
+        owners:     owners.sav
+        activators: activators.sav
             
 players:
     quantumrex:

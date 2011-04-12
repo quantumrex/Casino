@@ -1,33 +1,35 @@
 package com.nhksos.quantumrex.Game;
 
-import java.io.Serializable;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 
 import com.nhksos.quantumrex.Casino.Casino;
 import com.nhksos.quantumrex.Casino.DataManager;
 import com.nhksos.quantumrex.Casino.ID;
+import com.nhksos.quantumrex.Casino.SerialVector;
 
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 
-enum MachineState {READY, RUNNING, WAITING, STOPPED, BROKEN}; 
 
-public abstract class Game implements Serializable {
+public abstract class Game {
 	
-	private static final long serialVersionUID = -6944677438957693318L;
+	public enum MachineState {READY, RUNNING, WAITING, STOPPED, BROKEN, UNINITIALIZED}; 
 	
 	private static int NextID = 17;
 	public static final int NullID = -1;
 	
-	DataManager database;
-	Casino owner;
-	Player patron;
-	final ID id;
-	Block trigger;
+	transient DataManager database;
+	transient Casino owner;
+	transient Player patron;
+	transient Block trigger;
+	
+	ID id;
+	ID cowner;
 	double payout;
 	double payin;
-	double JackPot;
+	double jackpot;
 	int multiplier;
 	MachineState state;
+	SerialVector tvector;
 	
 	public static class GameIDAccess{
 		private GameIDAccess(){}
@@ -40,27 +42,43 @@ public abstract class Game implements Serializable {
 		}
 	}
 	
-	public static void init(DataManager db){
+	public static final void init(DataManager db){
 		db.receiveKey(new GameIDAccess());
+	}
+	
+	public Game(){
+		id = cowner = null;
+		payout = payin = jackpot = 0;
+		multiplier = 0;
+		state = MachineState.UNINITIALIZED;
 	}
 	
 	public Game(Casino casino, DataManager db, ID i) {
 		owner = casino;
+		cowner = casino.id;
 		database = db;
 		patron = null;
 		id = i;
 		state = MachineState.BROKEN;
 	}
 	
-	public boolean isReady(){
-		return (state == MachineState.READY);
+	public MachineState getState(){
+		return state;
 	}
 	
-	public abstract boolean enable(Player patron);
+	public abstract void enable(Player patron);
 	
 	public abstract boolean buildInteract(Block block);
 	
 	public abstract void playInteract(Block block);
 	
 	public abstract void testGame();
+	
+	public void reinitialize(DataManager db) {
+		// TODO Auto-generated method stub
+		database = db;
+		owner = db.getCasino(cowner);
+		trigger = tvector.toLocation(db.getWorld()).getBlock();
+		state = MachineState.READY;
+	}
 }

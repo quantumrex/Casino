@@ -1,10 +1,11 @@
 package com.nhksos.quantumrex.Casino;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -39,14 +40,11 @@ public class DataManager {
 		Game.init(this);
 		
 		config = new ConfigWriter(this);
-		/*
-		stats = new HashMap<String, Stats>();
-		activators = new HashMap<SerialVector, ID>();
-		owners = new HashMap<String, ID>();
-		casinos = new HashMap<ID, Casino>();
-		games = new HashMap<ID, Game>();
-		*/
+		
 		load();
+		
+		casinokey.setNextID(config.config.getInt("global.ID.start.casino", 17));
+		gamekey.setNextID(config.config.getInt("global.ID.start.game", 17));
 		
 		jobs = new HashMap<String, Job>();
 		running = new HashMap<String, ID>();
@@ -65,8 +63,18 @@ public class DataManager {
 		stats = config.getStats();
 		activators = config.readActivators();
 		owners = config.readOwners();
+		
 		casinos = config.readCasinos();
+		HashSet<ID> ckeys = new HashSet<ID>(casinos.keySet());
+		for (ID i : ckeys){
+			casinos.get(i).reinitialize(this);
+		}
+		
 		games = config.readGames();
+		HashSet<ID> gkeys = new HashSet<ID>(games.keySet());
+		for (ID i : gkeys){
+			games.get(i).reinitialize(this);
+		}
 	}
 	
 	public void save(){
@@ -78,12 +86,13 @@ public class DataManager {
 		config.writeGames(games);
 	}
 	
-	public void registerCasino(ID id, SerialVector vector){
-		if (casinos.get(id).defineCasino(vector)){
-			String player = casinos.get(id).owner.getName();
-			cancelJob(player);
-		}
-			
+	public void registerCasino(ID id, Block block){
+		if (testWorld(block.getWorld().getName())){
+			if (casinos.get(id).defineCasino(getVector(block))){
+				String player = casinos.get(id).owner.getName();
+				cancelJob(player);
+			}
+		}	
 	}
 	public void nameCasino(ID id, String name){
 		if (casinos.get(id).setName(name)){
@@ -149,14 +158,16 @@ public class DataManager {
 	}
 
 	public void registerGame(String name, ID id, Block block) {
-		if(games.containsKey(id)){
-			if (games.get(id).buildInteract(block))
-				cancelJob(name);
-		}
-		else{
-			parent.getServer().getPlayer(name).sendMessage(
-					"You still need to state a type for this game."
-					);
+		if (testWorld(block.getWorld().getName())){
+			if(games.containsKey(id)){
+				if (games.get(id).buildInteract(block))
+					cancelJob(name);
+			}
+			else{
+				parent.getServer().getPlayer(name).sendMessage(
+						"You still need to state a type for this game."
+						);
+			}
 		}
 	}
 	public void registerActivator(SerialVector vector, ID id){
@@ -168,8 +179,23 @@ public class DataManager {
 	public void playGame(SerialVector vector, Player player){
 		if (!running.containsKey(player.getName())){
 			ID temp = activators.get(vector);
-			running.put(player.getName(), temp);
-			games.get(temp).enable(player);
+			Game testing = games.get(temp);
+			switch (testing.getState()){
+			case UNINITIALIZED:
+				testing.reinitialize(this);
+			case READY:
+				running.put(player.getName(), temp);
+				testing.enable(player);
+				break;
+			case BROKEN:
+				player.sendMessage("This game is currently out of order.");
+				break;
+			case RUNNING:
+			case WAITING:
+			case STOPPED:
+				player.sendMessage("This game is currently in use. Try again later.");
+				break;
+			}
 		}
 		else{
 			player.sendMessage("You seem to be playing a game already.");
@@ -320,6 +346,25 @@ public class DataManager {
 
 	public JavaPlugin getPlugin() {
 		return parent;
+	}
+	
+	public boolean testWorld(String w){
+		String world = config.config.getString("global.world");
+		if (world == null){
+			config.config.setProperty("global.world", w);
+			return true;
+		}
+		else if (w == world)
+			return true;
+		return false;
+	}
+
+	public World getWorld() {
+		return parent.getServer().getWorld(config.config.getString("global.world"));
+	}
+	
+	private SerialVector getVector(Block block){
+		return new SerialVector(block.getLocation().toVector());
 	}
 }
 

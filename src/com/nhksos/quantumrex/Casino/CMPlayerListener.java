@@ -30,7 +30,7 @@ public class CMPlayerListener extends PlayerListener {
 			Job temp = database.getJob(name);
 			switch (temp.job){
 			case CASINO_CREATE:
-				database.registerCasino(temp.using, vector);
+				database.registerCasino(temp.using, block);
 				break;
 			case GAME_CREATE:
 				database.registerGame(name, temp.using, block);
@@ -70,9 +70,9 @@ public class CMPlayerListener extends PlayerListener {
 				break;
 			}
 		}
-    }
+	}
 	
 	private SerialVector getVector(PlayerInteractEvent event){
-		return (SerialVector)event.getClickedBlock().getLocation().toVector();
+		return new SerialVector(event.getClickedBlock().getLocation().toVector());
 	}
 }

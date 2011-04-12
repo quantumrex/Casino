@@ -1,5 +1,8 @@
 package com.nhksos.quantumrex.Casino;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import com.nhksos.quantumrex.Game.*;
@@ -15,10 +18,11 @@ public class Casino implements Serializable {
 	private static int NextID = 17;
 	public static final int NullID = -1;
 	
-	public Player owner;
+	public transient DataManager database;
+	public transient Player owner;
+	
 	public String name;
 	public final ID id;
-	public DataManager database;
 	private SerialVector corner1, corner3;
 	
 	public Casino(DataManager data, Player person, ID i){
@@ -74,8 +78,8 @@ public class Casino implements Serializable {
 		}
 		else if(!vector.equals(corner1) && corner3 == null){
 			SerialVector cornertemp = corner1;
-			corner3 = (SerialVector)Vector.getMaximum(vector, corner1);
-			corner1 = (SerialVector)Vector.getMinimum(corner1, vector);
+			corner3 = new SerialVector(Vector.getMaximum(vector, corner1));
+			corner1 = new SerialVector(Vector.getMinimum(corner1, vector));
 			corner3.setY(0);
 			corner1.setY(0);
 			
@@ -123,5 +127,18 @@ public class Casino implements Serializable {
 			return true;
 		}
 		return false;
+	}
+	
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
+		in.defaultReadObject();
+	}
+	
+	private void writeObject(ObjectOutputStream out) throws IOException{
+		out.defaultWriteObject();
+	}
+	
+	public void reinitialize(DataManager db){
+		database = db;
+		owner = db.getPlugin().getServer().getPlayer(name);
 	}
 }

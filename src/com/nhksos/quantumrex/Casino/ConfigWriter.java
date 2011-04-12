@@ -9,10 +9,12 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
+import java.util.TreeMap;
 
 import org.bukkit.util.config.Configuration;
 
 import com.nhksos.quantumrex.Game.Game;
+
 
 public class ConfigWriter {
 	private final File folder = new File("plugins", "CasinoManager");
@@ -62,19 +64,19 @@ public class ConfigWriter {
 	}
 
 	public HashMap<SerialVector, ID> readActivators() {
-		return readHash(config.getString("global.objects.path.activators", "activators.sav"));
+		return readHash(config.getString("global.objects.activators", "activators.sav"));
 	}
 
 	public HashMap<String, ID> readOwners() {
-		return readHash(config.getString("global.objects.path.owners", "owners.sav"));
+		return readHash(config.getString("global.objects.owners", "owners.sav"));
 	}
 
 	public HashMap<ID, Casino> readCasinos() {
-		return readHash(config.getString("global.objects.path.casinos", "casinos.sav"));
+		return readHash(config.getString("global.objects.casinos", "casinos.sav"));
 	}
 
 	public HashMap<ID, Game> readGames() {
-		return readHash(config.getString("global.objects.path.games", "games.sav"));
+		return readHash(config.getString("global.objects.games", "games.sav"));
 	}
 
 	public HashMap<String, Stats> getStats() {
@@ -87,19 +89,19 @@ public class ConfigWriter {
 	}
 	
 	public void writeActivators(HashMap<SerialVector, ID> activators) {
-		writeHash(activators, config.getString("global.objects.path.activators", "activators.sav"));
+		writeHash(activators, config.getString("global.objects.activators", "activators.sav"));
 	}
 
 	public void writeOwners(HashMap<String, ID> owners) {
-		writeHash(owners, config.getString("global.objects.path.owners", "owners.sav"));
+		writeHash(owners, config.getString("global.objects.owners", "owners.sav"));
 	}
 
 	public void writeCasinos(HashMap<ID, Casino> casinos) {
-		writeHash(casinos, config.getString("global.objects.path.casinos", "casinos.sav"));
+		writeHash(casinos, config.getString("global.objects.casinos", "casinos.sav"));
 	}
 
 	public void writeGames(HashMap<ID, Game> games) {
-		writeHash(games, config.getString("global.objects.path.games", "games.sav"));
+		writeHash(games, config.getString("global.objects.games", "games.sav"));
 	}
 
 	public void writeStats(HashMap<String, Stats> stats) {
@@ -108,6 +110,7 @@ public class ConfigWriter {
 	
 	@SuppressWarnings("unchecked")
 	private <T,U> HashMap<T, U> readHash(String fname){
+		folder.mkdirs();
 		HashMap<T, U> map = new HashMap<T, U>();
 		File newfile = new File(folder, fname);
 		try {
@@ -115,7 +118,7 @@ public class ConfigWriter {
 			ois = new ObjectInputStream(fis);
 			map = (HashMap<T, U>)ois.readObject();
 		} catch (FileNotFoundException e) {
-			System.out.println("[CasinoManager] Creating new file: " + fname);
+			System.out.println("[CasinoManager] Creating new file: " + newfile.getAbsolutePath());
 			try {
 				newfile.createNewFile();
 				fos = new FileOutputStream(newfile);
@@ -131,10 +134,11 @@ public class ConfigWriter {
 	}
 
 	private <T, U> void writeHash(HashMap<T, U> map, String fname) {
-		
+		folder.mkdirs();
 		File newfile = new File(folder, fname);
+		System.out.println("Writing settings to file: " + newfile.getAbsolutePath());
 		try {
-			fos = new FileOutputStream(fname);
+			fos = new FileOutputStream(newfile);
 			oos = new ObjectOutputStream(fos);
 			oos.writeObject(map);
 		} catch (FileNotFoundException e) {

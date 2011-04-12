@@ -3,6 +3,11 @@
  */
 package com.nhksos.quantumrex.Game;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 import com.nhksos.quantumrex.Casino.Casino;
 import com.nhksos.quantumrex.Casino.DataManager;
 import com.nhksos.quantumrex.Casino.ID;
@@ -17,18 +22,24 @@ import org.bukkit.Material;
  * @author rwenner
  *
  */
-public class SlotMachine extends Game {
-	Spinner slot;
+public class SlotMachine extends Game implements Serializable{
+	
+	private static final long serialVersionUID = -7156565210635169241L;
+	
+	transient Spinner slot;
 	
 	private class Spinner implements Runnable{
-		int taskId;
-		private Block wheel;
-		private boolean spinning;
+		transient int taskId;
+		SerialVector wvector;
+		transient Block wheel;
+		transient boolean spinning;
 		
 		public Spinner(SlotMachine game, Block spin){
 			taskId = -1;
-			if (spin.getType() == Material.WOOL)
+			if (spin.getType() == Material.WOOL){
 				wheel = spin;
+				wvector = new SerialVector(wheel.getLocation().toVector());
+			}
 			else{
 				System.out.println("This is not a valid spinner block!!!");
 				wheel = null;
@@ -94,7 +105,8 @@ public class SlotMachine extends Game {
 			case LEVER:
 				owner.owner.sendMessage("Trigger set!");
 				trigger = block;
-				database.registerActivator((SerialVector)block.getLocation().toVector(), id);
+				tvector = new SerialVector(trigger.getLocation().toVector());
+				database.registerActivator(tvector, id);
 				owner.owner.sendMessage("This gametype now needs a single wool block spinner.");
 				break;
 			default:
@@ -117,14 +129,10 @@ public class SlotMachine extends Game {
 	}
 
 	@Override
-	public boolean enable(Player p) {
+	public void enable(Player p) {
 		patron = p;
-		if (state == MachineState.READY){
-			state = MachineState.RUNNING;
-			slot.spin();
-			return true;
-		}
-		return false;
+		state = MachineState.RUNNING;
+		slot.spin();
 	}
 
 	@Override
@@ -142,6 +150,22 @@ public class SlotMachine extends Game {
 	public void testGame() {
 		enable(null);
 	}
-
+	
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
+		in.defaultReadObject();
+		slot.wvector = (SerialVector) in.readObject();
+	}
+	
+	private void writeObject(ObjectOutputStream out) throws IOException{
+		out.defaultWriteObject();
+	}
+	
+	@Override
+	public void reinitialize(DataManager db){
+		super.reinitialize(db);
+		slot.wheel = slot.wvector.toLocation(db.getWorld()).getBlock();
+		slot.taskId = -1;
+		slot.spinning = false;
+	}
 }
 
