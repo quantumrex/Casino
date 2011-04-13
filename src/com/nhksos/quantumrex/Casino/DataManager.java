@@ -94,11 +94,13 @@ public class DataManager {
 		HashSet<ID> ckeys = new HashSet<ID>(casinos.keySet());
 		for (ID i : ckeys){
 			casinos.get(i).reinitialize(this);
+			System.out.println(casinos.get(i).toString());
 		}
 
 		HashSet<ID> gkeys = new HashSet<ID>(games.keySet());
 		for (ID i : gkeys){
 			games.get(i).reinitialize(this);
+			System.out.println(games.get(i).toString());
 		}
 	}
 	

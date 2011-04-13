@@ -31,10 +31,20 @@ public class SerialVector extends Vector implements Serializable {
 	}
 	
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
-		in.defaultReadObject();
+		setX(in.readDouble());
+		setY(in.readDouble());
+		setZ(in.readDouble());
 	}
 	
 	private void writeObject(ObjectOutputStream out) throws IOException{
-		out.defaultWriteObject();
+		out.writeDouble(getX());
+		out.writeDouble(getY());
+		out.writeDouble(getZ());
+	}
+	
+	@Override
+	public String toString(){
+		String string = "" + x + ':' + y + ':' + z;
+		return string;
 	}
 }

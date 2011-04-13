@@ -76,4 +76,15 @@ public abstract class Game implements Serializable{
 		owner = db.getCasino(cowner);
 		state = MachineState.READY;
 	}
+	
+	@Override
+	public String toString(){
+		String string = "Game:" + 
+			"\nID =      " + id + 
+			"\nCasino =  " + cowner +
+			"\nTrigger = " + trigger.toString() +
+			"\n"
+			;
+		return string;
+	}
 }

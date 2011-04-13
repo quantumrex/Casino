@@ -53,4 +53,10 @@ public class ID implements Serializable, Comparable<ID>{
 			return (this.gameID - arg0.gameID);
 		else return (this.casinoID - arg0.casinoID);
 	}
+	
+	@Override
+	public String toString(){
+		String string = "" + casinoID + '.' + gameID;
+		return string;
+	}
 }

@@ -107,8 +107,9 @@ public class Casino implements Serializable {
 			world = w;
 			return true;
 		}
-		else if (world == w)
+		else if (world.equals(w)){
 			return true;
+		}
 		return false;
 	}
 
@@ -154,5 +155,18 @@ public class Casino implements Serializable {
 	
 	public void reinitialize(DataManager db){
 		database = db;
+	}
+	
+	public String toString(){
+		String string = "Casino:" +
+			"\nID =       " + id + 
+			"\nName =     " + name +
+			"\nOwner =    " + owner +
+			"\nWorld =    " + world +
+			"\nCorner 1 = " + corner1.toString() +
+			"\nCorner 3 = " + corner3.toString() +
+			"\n"
+			;
+		return string;
 	}
 }

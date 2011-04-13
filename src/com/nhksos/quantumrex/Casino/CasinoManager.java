@@ -5,6 +5,8 @@ package com.nhksos.quantumrex.Casino;
 
 import com.nijiko.coelho.iConomy.iConomy;
 import com.nijiko.permissions.PermissionHandler;
+
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -67,6 +69,10 @@ public class CasinoManager extends JavaPlugin implements Plugin {
         getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_ENABLE, pluginlistener, Priority.Monitor, this);
         getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_DISABLE, pluginlistener, Priority.Monitor, this);
         System.out.println("[CasinoManager] Plugin Enabled Successfully!");
+        System.out.println("Current Worlds are: ");
+        for (World i : getServer().getWorlds()){
+        	System.out.println(i.getName());
+        }
 	}
 	
 	@Override

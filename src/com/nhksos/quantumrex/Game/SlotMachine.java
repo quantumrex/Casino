@@ -188,5 +188,12 @@ public class SlotMachine extends Game implements Serializable{
 		super.reinitialize(db);
 		slot.wheel = slot.wvector.toLocation(db.getWorld(owner.world)).getBlock();
 	}
+	
+	@Override
+	public String toString(){
+		String string = super.toString() + 
+		"Spinner = " + slot.wvector.toString();
+		return string;
+	}
 }
 
