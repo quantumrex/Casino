@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.config.Configuration;
 
 import com.nhksos.quantumrex.Casino.Casino.CasinoIDAccess;
 import com.nhksos.quantumrex.Game.Game;
@@ -30,7 +31,8 @@ public class DataManager {
 	private HashMap<ID, Bet> bets;
 	private HashMap<String, Stats> stats;
 	
-	private ConfigWriter config;
+	private ConfigWriter writer;
+	public Configuration config;
 	
 	public DataManager(CasinoManager p){
 		parent = p;
@@ -39,16 +41,26 @@ public class DataManager {
 		Casino.init(this);
 		Game.init(this);
 		
-		config = new ConfigWriter(this);
+		writer = new ConfigWriter(this);
 		
 		load();
 		
-		casinokey.setNextID(config.config.getInt("global.ID.start.casino", 17));
-		gamekey.setNextID(config.config.getInt("global.ID.start.game", 17));
+		reinitialize();
+		
+		casinokey.setNextID(config.getInt("global.ID.start.casino", 17));
+		gamekey.setNextID(config.getInt("global.ID.start.game", 17));
 		
 		jobs = new HashMap<String, Job>();
 		running = new HashMap<String, ID>();
 		bets = new HashMap<ID, Bet>();
+	}
+	
+	@Override
+	public void finalize(){
+		config.setProperty("global.ID.start.casino", casinokey.getNextID());
+		config.setProperty("global.ID.start.game", gamekey.getNextID());
+		save();
+		writer.finalize();
 	}
 
 	public void receiveKey(CasinoIDAccess key) {
@@ -59,44 +71,47 @@ public class DataManager {
 		gamekey = key;
 	}
 	 
-	public void load(){
-		stats = config.getStats();
-		activators = config.readActivators();
-		owners = config.readOwners();
+	private void load(){
+		stats = writer.getStats();
+		activators = writer.readActivators();
+		owners = writer.readOwners();
+		casinos = writer.readCasinos();	
+		games = writer.readGames();
+	}
+	
+	private void save(){
+		//TODO Pre-process jobs, running, and bets
+		writer.writeStats(stats);
+		writer.writeActivators(activators);
+		writer.writeOwners(owners);
+		writer.writeCasinos(casinos);
+		writer.writeGames(games);
+	}
+
+	public void reinitialize() {
+		System.out.println("[CasinoManager] Re-initializing Casino Database.");
 		
-		casinos = config.readCasinos();
 		HashSet<ID> ckeys = new HashSet<ID>(casinos.keySet());
 		for (ID i : ckeys){
 			casinos.get(i).reinitialize(this);
 		}
-		
-		games = config.readGames();
+
 		HashSet<ID> gkeys = new HashSet<ID>(games.keySet());
 		for (ID i : gkeys){
 			games.get(i).reinitialize(this);
 		}
 	}
 	
-	public void save(){
-		//TODO Pre-process jobs, running, and bets
-		config.writeStats(stats);
-		config.writeActivators(activators);
-		config.writeOwners(owners);
-		config.writeCasinos(casinos);
-		config.writeGames(games);
-	}
-	
 	public void registerCasino(ID id, Block block){
-		if (testWorld(block.getWorld().getName())){
-			if (casinos.get(id).defineCasino(getVector(block))){
-				String player = casinos.get(id).owner.getName();
-				cancelJob(player);
-			}
+		if (casinos.get(id).defineCasino(block)){
+			String player = casinos.get(id).owner;
+			cancelJob(player);
 		}	
 	}
+	
 	public void nameCasino(ID id, String name){
 		if (casinos.get(id).setName(name)){
-			String player = casinos.get(id).owner.getName();
+			String player = casinos.get(id).owner;
 			cancelJob(player);
 		}
 	}
@@ -158,16 +173,14 @@ public class DataManager {
 	}
 
 	public void registerGame(String name, ID id, Block block) {
-		if (testWorld(block.getWorld().getName())){
-			if(games.containsKey(id)){
-				if (games.get(id).buildInteract(block))
-					cancelJob(name);
-			}
-			else{
-				parent.getServer().getPlayer(name).sendMessage(
-						"You still need to state a type for this game."
-						);
-			}
+		if(games.containsKey(id)){
+			if (games.get(id).buildInteract(block))
+				cancelJob(name);
+		}
+		else{
+			parent.getServer().getPlayer(name).sendMessage(
+					"You still need to state a type for this game."
+					);
 		}
 	}
 	public void registerActivator(SerialVector vector, ID id){
@@ -252,7 +265,7 @@ public class DataManager {
 						nameCasino(current, args[0]);
 					}
 					else{
-						String name = "";
+						String name = args[0];
 						for (int i = 1; i < args.length; i++){
 							name = name + ' ' + args[i];
 						}
@@ -339,32 +352,25 @@ public class DataManager {
 		//TODO Implement
 		return false;
 	}
-
+	
 	public BukkitScheduler getScheduler() {
 		return parent.getServer().getScheduler();
 	}
-
 	public JavaPlugin getPlugin() {
 		return parent;
 	}
 	
-	public boolean testWorld(String w){
-		String world = config.config.getString("global.world");
-		if (world == null){
-			config.config.setProperty("global.world", w);
-			return true;
-		}
-		else if (w == world)
-			return true;
-		return false;
+	public World getWorld(String world) {
+		return parent.getServer().getWorld(world);
 	}
 
-	public World getWorld() {
-		return parent.getServer().getWorld(config.config.getString("global.world"));
+	public Player getPlayer(String name) {
+		return parent.getServer().getPlayer(name);
 	}
-	
-	private SerialVector getVector(Block block){
-		return new SerialVector(block.getLocation().toVector());
+
+	public Block getBlock(SerialVector wvector, String world) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 

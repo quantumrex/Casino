@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
-import java.util.TreeMap;
 
 import org.bukkit.util.config.Configuration;
 
@@ -26,13 +25,12 @@ public class ConfigWriter {
 	private FileOutputStream fos;
 	private ObjectInputStream ois;
 	ObjectOutputStream oos;
-	Configuration config;
 	
 	public ConfigWriter(DataManager parent){
 		database = parent;
 		folder.mkdir();
 		if (configfile.exists())
-			config = new Configuration(configfile);
+			database.config = new Configuration(configfile);
 		else{
 			System.out.println("[CasinoManager] Config file is missing from: " + 
 							    configfile.getPath());
@@ -49,34 +47,35 @@ public class ConfigWriter {
 					tx.close();
 					res.close();
 				}
-				config = new Configuration(configfile);
+				database.config = new Configuration(configfile);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
-		readConfig();
+		database.config.load();
 	}
 	
-	private void readConfig(){
-		config.load();
+	@Override
+	public void finalize(){
+		database.config.save();
 	}
 
 	public HashMap<SerialVector, ID> readActivators() {
-		return readHash(config.getString("global.objects.activators", "activators.sav"));
+		return readHash(database.config.getString("global.objects.activators", "activators.sav"));
 	}
 
 	public HashMap<String, ID> readOwners() {
-		return readHash(config.getString("global.objects.owners", "owners.sav"));
+		return readHash(database.config.getString("global.objects.owners", "owners.sav"));
 	}
 
 	public HashMap<ID, Casino> readCasinos() {
-		return readHash(config.getString("global.objects.casinos", "casinos.sav"));
+		return readHash(database.config.getString("global.objects.casinos", "casinos.sav"));
 	}
 
 	public HashMap<ID, Game> readGames() {
-		return readHash(config.getString("global.objects.games", "games.sav"));
+		return readHash(database.config.getString("global.objects.games", "games.sav"));
 	}
 
 	public HashMap<String, Stats> getStats() {
@@ -85,23 +84,23 @@ public class ConfigWriter {
 	}
 	
 	public void writeConfig() {
-		config.save();
+		database.config.save();
 	}
 	
 	public void writeActivators(HashMap<SerialVector, ID> activators) {
-		writeHash(activators, config.getString("global.objects.activators", "activators.sav"));
+		writeHash(activators, database.config.getString("global.objects.activators", "activators.sav"));
 	}
 
 	public void writeOwners(HashMap<String, ID> owners) {
-		writeHash(owners, config.getString("global.objects.owners", "owners.sav"));
+		writeHash(owners, database.config.getString("global.objects.owners", "owners.sav"));
 	}
 
 	public void writeCasinos(HashMap<ID, Casino> casinos) {
-		writeHash(casinos, config.getString("global.objects.casinos", "casinos.sav"));
+		writeHash(casinos, database.config.getString("global.objects.casinos", "casinos.sav"));
 	}
 
 	public void writeGames(HashMap<ID, Game> games) {
-		writeHash(games, config.getString("global.objects.games", "games.sav"));
+		writeHash(games, database.config.getString("global.objects.games", "games.sav"));
 	}
 
 	public void writeStats(HashMap<String, Stats> stats) {

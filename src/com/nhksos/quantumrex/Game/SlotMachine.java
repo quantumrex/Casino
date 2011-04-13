@@ -29,13 +29,20 @@ public class SlotMachine extends Game implements Serializable{
 	transient Spinner slot;
 	
 	private class Spinner implements Runnable{
-		transient int taskId;
+		int taskID;
 		SerialVector wvector;
-		transient Block wheel;
-		transient boolean spinning;
+		Block wheel;
+		boolean spinning;
+		
+		protected Spinner(SerialVector v){
+			wvector = v;
+			taskID = -1;
+			spinning = false;
+			wheel = null;
+		}
 		
 		public Spinner(SlotMachine game, Block spin){
-			taskId = -1;
+			taskID= -1;
 			if (spin.getType() == Material.WOOL){
 				wheel = spin;
 				wvector = new SerialVector(wheel.getLocation().toVector());
@@ -47,30 +54,41 @@ public class SlotMachine extends Game implements Serializable{
 		}
 		
 		public boolean spin(){
-			// TODO Allow user communication
-			if (spinning){
-				return stop();
-			}
-			else{
-				spinning = true;
-				taskId = database.getScheduler().scheduleAsyncRepeatingTask(database.getPlugin(), this, 0L, 7L);
-				if (taskId == -1){
-					System.out.println("Could not start spinner...");
+			if(ready()){
+				taskID = database.getScheduler().scheduleAsyncRepeatingTask(database.getPlugin(), this, 0L, 7L);
+				if (taskID == -1){
+					try{
+						patron.sendMessage("Could not start spinner...");
+					}
+					catch(NullPointerException e) {}
 					return false;
 				}
-				return true;
+				else{
+					spinning = true;
+					return true;
+				}
+			}
+			else{
+				patron.sendMessage("Spinner is not initialized. Attempting repairs...");
+				try{
+					wheel = database.getBlock(wvector, owner.world);
+					patron.sendMessage("Success!");
+					return spin();
+				}
+				catch(NullPointerException e){
+					patron.sendMessage("There has been an error. The database is not initialized for this game...");
+					return false;
+				}
 			}
 		}
 		
 		public boolean stop(){
 			if (spinning){
 				spinning = false;
-				database.getScheduler().cancelTask(taskId);
+				database.getScheduler().cancelTask(taskID);
 				return true;
 			}
-			else{
-				return spin();
-			}
+			return true;
 		}
 		
 		@SuppressWarnings("unused")
@@ -93,38 +111,42 @@ public class SlotMachine extends Game implements Serializable{
 
 	public SlotMachine(Casino casino, DataManager db, ID i) {
 		super(casino, db, i);
+		slot = null;
 	}
 
 	@Override
 	public boolean buildInteract(Block block) {
-		if (trigger == null){
-			switch(block.getType()){
-			case STONE_BUTTON:
-			case STONE_PLATE:
-			case WOOD_PLATE:
-			case LEVER:
-				owner.owner.sendMessage("Trigger set!");
-				trigger = block;
-				tvector = new SerialVector(trigger.getLocation().toVector());
-				database.registerActivator(tvector, id);
-				owner.owner.sendMessage("This gametype now needs a single wool block spinner.");
-				break;
-			default:
-				owner.owner.sendMessage("Not a valid block for trigger...");
+		if(owner.worldCheck(block.getWorld().getName())){
+			if (trigger == null){
+				switch(block.getType()){
+				case STONE_BUTTON:
+				case STONE_PLATE:
+				case WOOD_PLATE:
+				case LEVER:
+					trigger = new SerialVector(block.getLocation().toVector());
+					
+					database.getPlayer(owner.owner).sendMessage("Trigger set!");
+					database.registerActivator(trigger, id);
+					database.getPlayer(owner.owner).sendMessage("This gametype now needs a single wool block spinner.");
+					break;
+				default:
+					database.getPlayer(owner.owner).sendMessage("Not a valid block for trigger...");
+				}
+			}
+			else if (slot == null){
+				slot = new Spinner(this, block);
+				if (slot.ready()){
+					state = MachineState.READY;
+					if (trigger != null)
+						return true;
+				}
+				else{
+					slot = null;
+				}
 			}
 		}
-		else if (slot == null){
-			slot = new Spinner(this, block);
-			if (slot.ready()){
-				state = MachineState.READY;
-				if (trigger != null)
-					return true;
-			}
-			else{
-				slot = null;
-			}
-		}
-		
+		else
+			database.getPlayer(owner.owner).sendMessage("You're currently in a different world than your casino. Fix it.");
 		return false;
 	}
 
@@ -137,7 +159,7 @@ public class SlotMachine extends Game implements Serializable{
 
 	@Override
 	public void playInteract(Block block) {
-		if (state == MachineState.RUNNING && block.equals(trigger)){
+		if (state == MachineState.RUNNING && trigger.equals(block)){
 			state = MachineState.READY;
 			slot.stop();
 			database.finishGame(patron.getName());
@@ -153,19 +175,18 @@ public class SlotMachine extends Game implements Serializable{
 	
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
 		in.defaultReadObject();
-		slot.wvector = (SerialVector) in.readObject();
+		slot = new Spinner((SerialVector) in.readObject());
 	}
 	
 	private void writeObject(ObjectOutputStream out) throws IOException{
 		out.defaultWriteObject();
+		out.writeObject(slot.wvector);
 	}
 	
 	@Override
 	public void reinitialize(DataManager db){
 		super.reinitialize(db);
-		slot.wheel = slot.wvector.toLocation(db.getWorld()).getBlock();
-		slot.taskId = -1;
-		slot.spinning = false;
+		slot.wheel = slot.wvector.toLocation(db.getWorld(owner.world)).getBlock();
 	}
 }
 

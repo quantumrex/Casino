@@ -1,5 +1,4 @@
 global:
-    world:
     objects:
         path:       plugins/CasinoManager/
         casinos:    casinos.sav

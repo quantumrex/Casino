@@ -26,6 +26,7 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 	private CMPluginListener pluginlistener = null;
 	private CMBlockListener blistener = null;
 	private CMPlayerListener plistener = null;
+	private CMWorldListener wlistener = null;
 	
 	//External Dependencies
 	//=======================================================
@@ -43,7 +44,7 @@ public class CasinoManager extends JavaPlugin implements Plugin {
 	 */
 	@Override
 	public void onDisable() {
-			database.save();
+		database.finalize();
 			System.out.println("[CasinoManager] Plugin disabled...");
 	}
 
@@ -56,8 +57,11 @@ public class CasinoManager extends JavaPlugin implements Plugin {
         pluginlistener = new CMPluginListener(this);
         
         plistener = new CMPlayerListener(database);
+        wlistener = new CMWorldListener(database);
 
         // Event Registration
+
+        getServer().getPluginManager().registerEvent(Event.Type.WORLD_LOAD, wlistener, Priority.Normal, this);
         getServer().getPluginManager().registerEvent(Event.Type.PLAYER_CHAT, plistener, Priority.Normal, this);
         getServer().getPluginManager().registerEvent(Event.Type.PLAYER_INTERACT, plistener, Priority.Normal, this);
         getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_ENABLE, pluginlistener, Priority.Monitor, this);

@@ -19,18 +19,18 @@ public class Casino implements Serializable {
 	public static final int NullID = -1;
 	
 	public transient DataManager database;
-	public transient Player owner;
 	
+	public String owner;
 	public String name;
+	public String world;
 	public final ID id;
 	private SerialVector corner1, corner3;
 	
 	public Casino(DataManager data, Player person, ID i){
 		System.out.println("Casino created for " + person.getName());
 		database = data;
-		owner = person;
+		owner = person.getName();
 		id = i;
-		name = "";
 		corner1 = corner3 = null;
 	}
 	
@@ -71,33 +71,47 @@ public class Casino implements Serializable {
 		return newgame;
 	}
 
-	public boolean defineCasino(SerialVector vector) {
-		if(corner1 == null){
-			corner1 = vector;
-			owner.sendMessage("Corner 1 defined. One left!");
-		}
-		else if(!vector.equals(corner1) && corner3 == null){
-			SerialVector cornertemp = corner1;
-			corner3 = new SerialVector(Vector.getMaximum(vector, corner1));
-			corner1 = new SerialVector(Vector.getMinimum(corner1, vector));
-			corner3.setY(0);
-			corner1.setY(0);
-			
-			int area = getArea();
-			if(area > 0){
-				owner.sendMessage("Casino boundaries defined!");
-				owner.sendMessage("  Total area: " + area + " Square Meters.");
+	public boolean defineCasino(Block block) {
+		if (worldCheck(block.getWorld().getName())){
+			SerialVector vector = new SerialVector(block.getLocation().toVector());
+			if(corner1 == null){
+				corner1 = vector;
+				database.getPlayer(owner).sendMessage("Corner 1 defined. One left!");
 			}
-			else{
-				owner.sendMessage("Casino area is 0! This means your blocks are in a line. \n" +
-								  "  Use opposite corners. Take up space!");
-				corner1 = cornertemp;
-				corner3 = null;
+			else if(!vector.equals(corner1) && corner3 == null){
+				SerialVector cornertemp = corner1;
+				corner3 = new SerialVector(Vector.getMaximum(vector, corner1));
+				corner1 = new SerialVector(Vector.getMinimum(corner1, vector));
+				corner3.setY(0);
+				corner1.setY(0);
+				
+				int area = getArea();
+				if(area > 0){
+					database.getPlayer(owner).sendMessage("Casino boundaries defined!");
+					database.getPlayer(owner).sendMessage("  Total area: " + area + " Square Meters.");
+				}
+				else{
+					database.getPlayer(owner).sendMessage("Casino area is 0! This means your blocks are in a line. \n" +
+									  "  Use opposite corners. Take up space!");
+					corner1 = cornertemp;
+					corner3 = null;
+				}
 			}
+			return complete();
 		}
-		return complete();
+		return false;
 	}
 	
+	public boolean worldCheck(String w) {
+		if (world == null || world == ""){
+			world = w;
+			return true;
+		}
+		else if (world == w)
+			return true;
+		return false;
+	}
+
 	public int getArea(){
 		int length = corner3.getBlockX() - corner1.getBlockX();
 		int width = corner3.getBlockZ() - corner1.getBlockZ();
@@ -113,14 +127,14 @@ public class Casino implements Serializable {
 
 	public boolean setName(String n) {
 		name = n;
-		owner.sendMessage("You Casino's name was set to: \"" + name + "\"");
+		database.getPlayer(owner).sendMessage("You Casino's name was set to: \"" + name + "\"");
 		
 		return complete();
 	}
 
 	private boolean complete() {
 		if (corner1 != null && corner3 != null && name != ""){
-			System.out.println("Casino finished: " + owner.getName() + " has a new casino. \n" +
+			System.out.println("Casino finished: " + owner + " has a new casino. \n" +
 							   "  Name:     " + name + "\n" +
 							   "  Location: " + corner1.toString() + "\n" + 
 							   "  Area:     " + getArea() + " Square Blocks");
@@ -130,6 +144,7 @@ public class Casino implements Serializable {
 	}
 	
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
+		//owner, name, ID, corner1, corner3
 		in.defaultReadObject();
 	}
 	
@@ -139,6 +154,5 @@ public class Casino implements Serializable {
 	
 	public void reinitialize(DataManager db){
 		database = db;
-		owner = db.getPlugin().getServer().getPlayer(name);
 	}
 }

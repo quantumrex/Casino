@@ -5,9 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import com.nhksos.quantumrex.Game.Game.MachineState;
-
-public class ID implements Serializable, Comparable{
+public class ID implements Serializable, Comparable<ID>{
 	
 	private static final long serialVersionUID = 793060220239482147L;
 	
@@ -27,7 +25,6 @@ public class ID implements Serializable, Comparable{
 	public int hashCode(){
 		double value = (double)casinoID * Math.PI;
 		value = Math.pow(value, (double)gameID + Math.hypot(casinoID, gameID));
-		System.out.println("Hash: " + Double.toHexString(value).hashCode()+ "Casino: " + casinoID + "Game: " + gameID);
 		return Double.toHexString(value).hashCode();
 	}
 	
@@ -51,15 +48,9 @@ public class ID implements Serializable, Comparable{
 	}
 
 	@Override
-	public int compareTo(Object arg0) {
-		if (arg0 instanceof ID){
-			if(this.casinoID == ((ID)arg0).casinoID){
-				if(this.gameID == ((ID)arg0).gameID)
-					return 0;
-				else return (this.gameID - ((ID)arg0).gameID);
-			}
-			else return (this.casinoID - ((ID)arg0).casinoID);
-		}
-		else return (this.hashCode() - arg0.hashCode());
+	public int compareTo(ID arg0) {
+		if(this.casinoID == arg0.casinoID)
+			return (this.gameID - arg0.gameID);
+		else return (this.casinoID - arg0.casinoID);
 	}
 }

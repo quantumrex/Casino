@@ -1,5 +1,7 @@
 package com.nhksos.quantumrex.Game;
 
+import java.io.Serializable;
+
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
@@ -10,8 +12,10 @@ import com.nhksos.quantumrex.Casino.SerialVector;
 
 
 
-public abstract class Game {
+public abstract class Game implements Serializable{
 	
+	private static final long serialVersionUID = 5548425295617698713L;
+
 	public enum MachineState {READY, RUNNING, WAITING, STOPPED, BROKEN, UNINITIALIZED}; 
 	
 	private static int NextID = 17;
@@ -20,16 +24,15 @@ public abstract class Game {
 	transient DataManager database;
 	transient Casino owner;
 	transient Player patron;
-	transient Block trigger;
 	
-	ID id;
-	ID cowner;
+	final ID id;
+	final ID cowner;
 	double payout;
 	double payin;
 	double jackpot;
 	int multiplier;
 	MachineState state;
-	SerialVector tvector;
+	SerialVector trigger;
 	
 	public static class GameIDAccess{
 		private GameIDAccess(){}
@@ -44,13 +47,6 @@ public abstract class Game {
 	
 	public static final void init(DataManager db){
 		db.receiveKey(new GameIDAccess());
-	}
-	
-	public Game(){
-		id = cowner = null;
-		payout = payin = jackpot = 0;
-		multiplier = 0;
-		state = MachineState.UNINITIALIZED;
 	}
 	
 	public Game(Casino casino, DataManager db, ID i) {
@@ -78,7 +74,6 @@ public abstract class Game {
 		// TODO Auto-generated method stub
 		database = db;
 		owner = db.getCasino(cowner);
-		trigger = tvector.toLocation(db.getWorld()).getBlock();
 		state = MachineState.READY;
 	}
 }
