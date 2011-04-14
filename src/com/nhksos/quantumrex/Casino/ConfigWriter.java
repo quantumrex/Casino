@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -26,7 +27,7 @@ public class ConfigWriter {
 	private ObjectInputStream ois;
 	ObjectOutputStream oos;
 	
-	public ConfigWriter(DataManager parent){
+	public ConfigWriter(DataManager parent) throws IOException{
 		database = parent;
 		folder.mkdir();
 		if (configfile.exists())
@@ -35,23 +36,18 @@ public class ConfigWriter {
 			System.out.println("[CasinoManager] Config file is missing from: " + 
 							    configfile.getPath());
 			System.out.println("[CasinoManager] Creating the default config file.");
+			configfile.createNewFile();
+			InputStream res = DataManager.class.getResourceAsStream("/config.yml");
+			FileWriter tx = new FileWriter(configfile);
 			try {
-				configfile.createNewFile();
-				InputStream res = DataManager.class.getResourceAsStream("/config.yml");
-				FileWriter tx = new FileWriter(configfile);
-				try {
-					for (int i = 0; (i = res.read()) > 0;)
-						tx.write(i);
-				} finally {
-					tx.flush();
-					tx.close();
-					res.close();
-				}
-				database.config = new Configuration(configfile);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				for (int i = 0; (i = res.read()) > 0;)
+					tx.write(i);
+			} finally {
+				tx.flush();
+				tx.close();
+				res.close();
 			}
+			database.config = new Configuration(configfile);
 		}
 		
 		database.config.load();
@@ -117,7 +113,8 @@ public class ConfigWriter {
 			ois = new ObjectInputStream(fis);
 			map = (HashMap<T, U>)ois.readObject();
 		} catch (FileNotFoundException e) {
-			System.out.println("[CasinoManager] Creating new file: " + newfile.getAbsolutePath());
+			if (database.config.getBoolean("global.debug", false))
+				System.out.println("[CasinoManager] Creating new file: " + newfile.getAbsolutePath());
 			try {
 				newfile.createNewFile();
 				fos = new FileOutputStream(newfile);
@@ -135,15 +132,18 @@ public class ConfigWriter {
 	private <T, U> void writeHash(HashMap<T, U> map, String fname) {
 		folder.mkdirs();
 		File newfile = new File(folder, fname);
-		System.out.println("Writing settings to file: " + newfile.getAbsolutePath());
+		if (database.config.getBoolean("global.debug", false))
+			System.out.println("Writing settings to file: " + newfile.getAbsolutePath());
 		try {
 			fos = new FileOutputStream(newfile);
 			oos = new ObjectOutputStream(fos);
 			oos.writeObject(map);
 		} catch (FileNotFoundException e) {
-			System.out.println("[CasinoManager] File: " + fname + " should already exist...");
+			if (database.config.getBoolean("global.debug", false))
+				System.out.println("[CasinoManager] File: " + fname + " should already exist...");
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (database.config.getBoolean("global.debug", false))
+				e.printStackTrace();
 		}
 	}
 

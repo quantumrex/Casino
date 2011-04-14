@@ -15,41 +15,52 @@ import com.nijikokun.bukkit.Permissions.Permissions;
  */
 public class CMPluginListener extends ServerListener{
 	//Necessary Components
-	private final CasinoManager CasinoManager;
+	private final CasinoManager parent;
 	
-	/**
-	 * 
-	 * @param CM
-	 */
     public CMPluginListener(CasinoManager CM) {
-    	CasinoManager = CM;
+    	parent = CM;
     }
     
-    /**
-     * 
-     */
-    @Override
+    public boolean hookPlugins(){
+		hookHelp();
+		hookPermissions();
+    	return hookiConomy();
+    }
+    
+    private void hookHelp() {
+		
+	}
+
+	private void hookPermissions() {
+        parent.setPermissions((Permissions)parent.getServer().getPluginManager().getPlugin("Permissions"));
+	}
+
+	private boolean hookiConomy() {
+		if(parent.getiConomy() == null) {
+            iConomy dependency = (iConomy) parent.getServer().getPluginManager().getPlugin("iConomy");
+            if (dependency != null) {
+                if(dependency.isEnabled()) {
+                    parent.setiConomy(dependency);
+                    System.out.println("[CasinoManager] Successfully linked with iConomy.");
+                    return true;
+                }
+            }
+        }
+		return false;
+	}
+
+	@Override
     public void onPluginEnable(PluginEnableEvent event) {
     	//Register with iConomy
     	if(event.getPlugin().getDescription().getName() == "iConomy"){
-        	iConomy dependency;
-    		if (!CasinoManager.isEnabled()){
-    			CasinoManager.getPluginLoader().enablePlugin(CasinoManager);
+    		if (!parent.isEnabled()){
+    			parent.getPluginLoader().enablePlugin(parent);
     		}
-    		if(CasinoManager.getiConomy() == null) {
-                dependency = (iConomy)event.getPlugin();
-
-                if (dependency != null) {
-                    if(dependency.isEnabled()) {
-                        CasinoManager.setiConomy((iConomy)dependency);
-                        System.out.println("[CasinoManager] Successfully linked with iConomy.");
-                    }
-                }
-            }
+    		hookiConomy();
     	}
-    	//Register with Permisisons
+    	//Register with Permissisons
     	if(event.getPlugin().getDescription().getName().equals("Permissions")) {
-            CasinoManager.setPermissions(((Permissions)event.getPlugin()).Security);
+    		hookPermissions();
             System.out.println("[CasinoManager] Linked with Permissions.");
         }
     	//Register with Help
@@ -63,12 +74,12 @@ public class CMPluginListener extends ServerListener{
     	//Disable Casino if iConomy dies
     	if(event.getPlugin().getDescription().getName() == "iConomy"){
     		System.out.println("[CasinoManager] iConomy disabled. Shutting down...");
-    		CasinoManager.getPluginLoader().disablePlugin(CasinoManager);
+    		parent.getPluginLoader().disablePlugin(parent);
     	}
     	
     	else if(event.getPlugin().getDescription().getName() == "Permissions"){
     		System.out.println("[CasinoManager] Permissions disabled. Defaulting to Op only commands...");
-    		CasinoManager.disablePermissions();
+    		parent.disablePermissions();
     	}
     	else if(event.getPlugin().getDescription().getName() == "Help"){
     		System.out.println("[CasinoManager] Help integration disabled...");

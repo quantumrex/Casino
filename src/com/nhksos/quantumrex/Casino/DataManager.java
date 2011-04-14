@@ -1,5 +1,6 @@
 package com.nhksos.quantumrex.Casino;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -15,52 +16,132 @@ import com.nhksos.quantumrex.Casino.Casino.CasinoIDAccess;
 import com.nhksos.quantumrex.Game.Game;
 import com.nhksos.quantumrex.Game.Game.GameIDAccess;
 
+/**
+ * DataManager is the central database for this plugin's data. All necessary data 
+ * is stored in a series of HashMaps that are read from and written to files via 
+ * the Serializable interface.
+ * @author quantumrex
+ */
 public class DataManager {
 	private CasinoManager parent;
+	/**
+	 * Standard bukkit Description file reference
+	 */
 	public static PluginDescriptionFile description;
 	
+	
+	/**
+	 * Accessor to reset the ID generation System for Games. Implemented for security.
+	 */
 	private GameIDAccess gamekey;
+	/**
+	 * Accessor to reset the ID generation System for Casinos. Implemented for security.
+	 */
 	private CasinoIDAccess casinokey;
 	
+	/**
+	 * A HashMap containing all game activators mapped to their respective GameIDs. An 
+	 * activator is the button, switch, or pressure pad that begins a game. This is 
+	 * used for looking up a gameID by the PLAYER_INTERACT event.
+	 */
 	private HashMap<SerialVector, ID> activators;
+	/**
+	 * A HashMap containing all of the Casino Owners Names, mapped to the ID of the casino
+	 * that they own. Used to check if a specific Player owns a Casino.
+	 */
 	private HashMap<String, ID> owners;
+	/**
+	 * A HashMap containing all CasinoIDs, mapped to their respective Casinos. This map contains
+	 * all Casinos that the plugin is managing. 
+	 */
 	private HashMap<ID, Casino> casinos;
+	/**
+	 * A HashMap containing all existing GameIDs mapped to the games that they represent. This 
+	 * contains all games being managed by the plugin. Each game is aware of the Casino it belongs
+	 * to, as well as all of the properties contained by the Casino.
+	 */
 	private HashMap<ID, Game> games;
+	/**
+	 * A HashMap containing all of the currently running tasks that the database is keeping track 
+	 * of. These are used to direct player input and events to the proper Casino or Game. Jobs
+	 * are looked up by player name. 
+	 */
 	private HashMap<String, Job> jobs;
+	/**
+	 * A HashMap containing all currently running games managed by the database. These are used to
+	 * direct player input to the game, either thru chat events, or Player interacts.
+	 */
 	private HashMap<String, ID> running;
-	private HashMap<ID, Bet> bets;
+	/**
+	 * 
+	 */
+	//private HashMap<ID, Bet> bets;
+	/**
+	 * Not yet implemented.
+	 */
 	private HashMap<String, Stats> stats;
 	
+	/**
+	 * The writer in charge of saving and loading game data for the Database.
+	 */
 	private ConfigWriter writer;
+	/**
+	 * A Configuration object based off of a default config.yml in the plugin's data directory.
+	 */
 	public Configuration config;
 	
+	/**
+	 * Starts the database, loads all saved data and config options, reinitializes all 
+	 * data members, and performs general maintenance to allow the program to run correctly.
+	 * @param p
+	 */
 	public DataManager(CasinoManager p){
-		parent = p;
-		description = parent.getDescription();
+		try {
+			parent = p;
+			description = parent.getDescription();
+			
+			Casino.init(this);
+			Game.init(this);
 		
-		Casino.init(this);
-		Game.init(this);
+			writer = new ConfigWriter(this);
 		
-		writer = new ConfigWriter(this);
 		
-		load();
-		
-		reinitialize();
-		
-		casinokey.setNextID(config.getInt("global.ID.start.casino", 17));
-		gamekey.setNextID(config.getInt("global.ID.start.game", 17));
-		
-		jobs = new HashMap<String, Job>();
-		running = new HashMap<String, ID>();
-		bets = new HashMap<ID, Bet>();
+			load();
+			
+			reinitialize();
+			
+			casinokey.setNextID(config.getInt("global.ID.start.casino", 17));
+			gamekey.setNextID(config.getInt("global.ID.start.game", 17));
+			
+			jobs = new HashMap<String, Job>();
+			running = new HashMap<String, ID>();
+			//bets = new HashMap<ID, Bet>();
+		} catch (IOException e) {
+			System.out.println("[CasinoManager] Database load error.");
+			try{
+				if(config.getBoolean("global.debug", false))
+					e.printStackTrace();
+			}
+			catch(Exception e2){
+				System.out.println("[CasinoManager] There is a problem with the configuration file.");
+				e2.printStackTrace();
+			}
+			finally{
+				parent.getServer().getPluginManager().disablePlugin(parent);
+			}
+		}
 	}
 	
-	@Override
-	public void finalize(){
-		config.setProperty("global.ID.start.casino", casinokey.getNextID());
-		config.setProperty("global.ID.start.game", gamekey.getNextID());
-		save();
-		writer.finalize();
+	public boolean stop(){
+		try{
+			config.setProperty("global.ID.start.casino", casinokey.getNextID());
+			config.setProperty("global.ID.start.game", gamekey.getNextID());
+			save();
+			writer.finalize();
+		}catch(Exception e){
+			return false;
+		}
+		return true;
 	}
 
 	public void receiveKey(CasinoIDAccess key) {
@@ -94,13 +175,15 @@ public class DataManager {
 		HashSet<ID> ckeys = new HashSet<ID>(casinos.keySet());
 		for (ID i : ckeys){
 			casinos.get(i).reinitialize(this);
-			System.out.println(casinos.get(i).toString());
+			if (config.getBoolean("global.debug", false))
+				System.out.println(casinos.get(i).toString());
 		}
 
 		HashSet<ID> gkeys = new HashSet<ID>(games.keySet());
 		for (ID i : gkeys){
 			games.get(i).reinitialize(this);
-			System.out.println(games.get(i).toString());
+			if (config.getBoolean("global.debug", false))
+				System.out.println(games.get(i).toString());
 		}
 	}
 	
@@ -139,8 +222,6 @@ public class DataManager {
 		//TODO There's a bug in the ID assignment code
 		ID cid = new ID(job.using.casinoID, Game.NullID);
 		Casino house = casinos.get(cid);
-		if (house == null)
-			System.out.println("HOUSE IS NULL!!!");
 		Game newgame = null;
 		switch(type){
 		case slot:

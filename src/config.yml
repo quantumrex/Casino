@@ -1,4 +1,9 @@
 global:
+    debug:          true
+    ID:
+        start:
+            casino: 17
+            game:   17
     objects:
         path:       plugins/CasinoManager/
         casinos:    casinos.sav
