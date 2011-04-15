@@ -16,6 +16,8 @@ import com.nhksos.quantumrex.Casino.SerialVector;
 import org.bukkit.DyeColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.Material;
 
 /**
@@ -158,14 +160,17 @@ public class SlotMachine extends Game implements Serializable{
 	}
 
 	@Override
-	public void playInteract(Block block) {
-		if (state == MachineState.RUNNING && trigger.equals(block)){
-			state = MachineState.READY;
-			slot.stop();
-			database.finishGame(patron.getName());
+	public void playInteract(Event e) {
+		if (e instanceof PlayerInteractEvent){
+			PlayerInteractEvent event = (PlayerInteractEvent) e;
+			if (state == MachineState.RUNNING && trigger.equals(event.getClickedBlock())){
+				state = MachineState.READY;
+				slot.stop();
+				database.finishGame(patron.getName());
+			}
+			else
+				patron.sendMessage("Not my switch, not my problem.");
 		}
-		else
-			patron.sendMessage("Not my switch, not my problem.");
 	}
 
 	@Override

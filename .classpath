@@ -3,8 +3,8 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Bukkit"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Permissions"/>
 	<classpathentry kind="lib" path="/home/rwenner/workspace/libraries/iConomy4.6.5.jar"/>
 	<classpathentry kind="lib" path="/home/rwenner/workspace/libraries/ebean-2.7.3.jar"/>
+	<classpathentry kind="lib" path="/home/rwenner/workspace/libraries/Permissions.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

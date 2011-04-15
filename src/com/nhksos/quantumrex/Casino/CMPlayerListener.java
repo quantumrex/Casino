@@ -38,7 +38,7 @@ public class CMPlayerListener extends PlayerListener {
 			}
 		}
 		else if(database.isPlaying(name)){
-			database.playInteract(name, block);
+			database.playInteract(name, event);
 		}
 		else if (database.isGameActivator(getVector(event))){
 			database.playGame(vector, player);

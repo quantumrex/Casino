@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="javadoc">
     <target name="javadoc">
-        <javadoc access="private" additionalparam=" -linkoffline http://javadoc.lukegb.com/BukkitJD/&#10;             http://javadoc.lukegb.com/BukkitJD/&#10;-linkoffline http://java.sun.com/javase/6/docs/api/&#10;             http://java.sun.com/javase/6/docs/api/" author="true" classpath="../Permissions/target/classes:../libraries/iConomy4.6.5.jar:../libraries/ebean-2.7.3.jar:../Bukkit/target/classes" destdir="doc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" source="1.6" sourcefiles="src/com/nhksos/quantumrex/Casino/CasinoManager.java" sourcepath="src" splitindex="true" use="true" version="true"/>
+        <javadoc access="private" additionalparam=" -linkoffline http://javadoc.lukegb.com/BukkitJD/ http://javadoc.lukegb.com/BukkitJD/ -linkoffline http://java.sun.com/javase/6/docs/api/ http://java.sun.com/javase/6/docs/api/ " author="true" classpath="../Permissions/target/classes:../libraries/iConomy4.6.5.jar:../libraries/ebean-2.7.3.jar:../Bukkit/target/classes" destdir="doc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="com.nhksos.quantumrex.Game,com.nhksos.quantumrex.Casino" source="1.6" sourcepath="src" splitindex="true" use="true" version="true"/>
     </target>
 </project>

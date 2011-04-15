@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 
 import com.nhksos.quantumrex.Casino.Casino;
 import com.nhksos.quantumrex.Casino.DataManager;
@@ -66,7 +67,7 @@ public abstract class Game implements Serializable{
 	
 	public abstract boolean buildInteract(Block block);
 	
-	public abstract void playInteract(Block block);
+	public abstract void playInteract(Event event);
 	
 	public abstract void testGame();
 	
